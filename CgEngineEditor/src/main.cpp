@@ -4,7 +4,7 @@
 
 class MyApp : public CGEngine::Application {
 	virtual void on_update() override {
-		std::cout << "Update: " << frame++ << std::endl;
+		//std::cout << "Update: " << frame++ << std::endl;
 	}
 
 	int frame = 0;
