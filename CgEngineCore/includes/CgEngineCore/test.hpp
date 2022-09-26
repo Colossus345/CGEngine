@@ -1,0 +1,5 @@
+
+namespace CGEngine {
+
+	int checkglfw();
+}
