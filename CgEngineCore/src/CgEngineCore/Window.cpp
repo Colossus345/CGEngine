@@ -7,7 +7,7 @@
 namespace CGEngine {
     static bool s_GLFW_initialized = false;
 	
-	Window::Window(std::string title, const unsigned int width, const unsigned int height):m_title(std::move(title)),m_width(width),m_height(height)
+    Window::Window(std::string title, const unsigned int width, const unsigned int height) :m_data({ std::move(title) ,width, height })
 	{
 		int result = init();
 	}
@@ -53,7 +53,7 @@ namespace CGEngine {
         s_GLFW_initialized = true;
 
         /* Create a windowed mode window and its OpenGL context */
-        m_pWindow = glfwCreateWindow(m_width, m_height, m_title.c_str(), NULL, NULL);
+        m_pWindow = glfwCreateWindow(m_data.width, m_data.height, m_data.title.c_str(), NULL, NULL);
         if (!m_pWindow)
         {
             LOG_CRIT("Cant create window");
@@ -70,7 +70,39 @@ namespace CGEngine {
             return -1;
         }
 
+        glfwSetWindowUserPointer(m_pWindow, &m_data);
 
+        glfwSetWindowSizeCallback(m_pWindow,
+            [](GLFWwindow* pWindow, int width,int height) 
+            {
+               
+                auto& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow));
+                data.width = width;
+                data.height = height;
+            
+                EventWindowResize event(width,height);
+                data.eventCallbackFn(event);
+                
+
+            }
+        );
+
+        glfwSetCursorPosCallback(m_pWindow,
+            [](GLFWwindow* pWindow, double new_x, double new_y)
+            {
+                auto& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow));
+                EventMouseMoved event(new_x, new_y);
+
+                data.eventCallbackFn(event);
+
+            });
+        glfwSetWindowCloseCallback(m_pWindow,
+            [](GLFWwindow* pWindow) {
+                auto& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow));
+                EventWindowClose event;
+
+                data.eventCallbackFn(event);
+            });
         
 
         

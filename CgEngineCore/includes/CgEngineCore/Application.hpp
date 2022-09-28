@@ -1,5 +1,6 @@
 #pragma once
 #include<memory>
+#include"CgEngineCore/Events/Event.hpp"
 
 namespace CGEngine {
 
@@ -20,5 +21,9 @@ namespace CGEngine {
 
 	private:
 		std::unique_ptr<class Window> m_pWindow;
+
+		EventDispatcher m_event_dispatcher;
+
+		bool m_bCloseWindow = false;
 	};
 }

@@ -4,7 +4,8 @@ set(ENGINE_PROJECT_NAME CgEngineCore)
 
 set(ENGINE_PUBLIC_INCLUDES 
 	includes/CgEngineCore/Application.hpp
-	includes/CgEngineCore/Log.hpp)
+	includes/CgEngineCore/Log.hpp
+	includes/CgEngineCore/Events/Event.hpp)
 	
 set(ENGINE_PRIVATE_INCLUDES 
 	src/CgEngineCore/Window.hpp
