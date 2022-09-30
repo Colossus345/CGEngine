@@ -48,5 +48,7 @@ namespace CGEngine {
 
 		GLFWwindow* m_pWindow;
 
+		float m_background_color[4] = { 0.4f, .4f, .71f, 1.0f };
+
 	};
 }

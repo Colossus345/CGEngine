@@ -4,12 +4,20 @@
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 
+#include<imgui.h>
+#include<imgui/backends/imgui_impl_opengl3.h>
+#include<imgui/backends/imgui_impl_glfw.h>
 namespace CGEngine {
     static bool s_GLFW_initialized = false;
 	
     Window::Window(std::string title, const unsigned int width, const unsigned int height) :m_data({ std::move(title) ,width, height })
 	{
 		int result = init();
+
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGui_ImplOpenGL3_Init();
+        ImGui_ImplGlfw_InitForOpenGL(m_pWindow,true);
 	}
 
 	Window::~Window()
@@ -21,11 +29,33 @@ namespace CGEngine {
 
 	void Window::on_update()
 	{
-        glClearColor(0.4f, .4f, .71f, 1.0f);
+        glClearColor(m_background_color[0], m_background_color[1], m_background_color[2], m_background_color[3]);
        
         
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
+
+        ImGuiIO& io = ImGui::GetIO();
+
+        io.DisplaySize.x = static_cast<float>(get_width());
+        io.DisplaySize.y = static_cast<float>(get_height());
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::ShowDemoWindow();
+
+
+        ImGui::Begin("Background color");
+        ImGui::ColorEdit4("Background color", m_background_color);
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        
+
 
         /* Swap front and back buffers */
         glfwSwapBuffers(m_pWindow);
