@@ -9,17 +9,25 @@ set(ENGINE_PUBLIC_INCLUDES
 	
 set(ENGINE_PRIVATE_INCLUDES 
 	src/CgEngineCore/Window.hpp
+	src/CgEngineCore/Rendering/ShaderProgram.hpp
 	)
 	
 set(ENGINE_PRIVATE_SOURCES
 	src/CgEngineCore/Application.cpp
-	src/CgEngineCore/Window.cpp)
+	src/CgEngineCore/Window.cpp
+	src/CgEngineCore/Rendering/ShaderProgram.cpp)
 
-add_library(${ENGINE_PROJECT_NAME} STATIC
-	${ENGINE_PRIVATE_SOURCES}
+set(ENGINE_ALL_SOURCES
 	${ENGINE_PRIVATE_INCLUDES}
 	${ENGINE_PUBLIC_INCLUDES}
+	${ENGINE_PRIVATE_SOURCES})
+
+add_library(${ENGINE_PROJECT_NAME} STATIC
+	${ENGINE_ALL_SOURCES}
 	)
+	
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES
+			${ENGINE_ALL_SOURCES})
 	
 target_include_directories(${ENGINE_PROJECT_NAME} PUBLIC includes)
 target_include_directories(${ENGINE_PROJECT_NAME} PRIVATE src)
