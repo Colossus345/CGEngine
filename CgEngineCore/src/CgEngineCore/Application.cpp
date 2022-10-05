@@ -23,11 +23,11 @@ namespace  CGEngine{
 		
 		m_event_dispatcher.add_event_listener<EventMouseMoved>(
 			[](EventMouseMoved& event) {
-				LOG_INFO("[Mouse moved] new pos {0}x{1}", event.x, event.y);
+				//LOG_INFO("[Mouse moved] new pos {0}x{1}", event.x, event.y);
 			});
 		m_event_dispatcher.add_event_listener<EventWindowResize>(
 			[](EventWindowResize& event) {
-				LOG_INFO("[Window resized] new width/height {0}x{1}", event.width, event.height);
+				//LOG_INFO("[Window resized] new width/height {0}x{1}", event.width, event.height);
 			});
 		m_event_dispatcher.add_event_listener<EventWindowClose>(
 			[&](EventWindowClose& event) {

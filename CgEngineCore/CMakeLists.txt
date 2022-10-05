@@ -10,12 +10,16 @@ set(ENGINE_PUBLIC_INCLUDES
 set(ENGINE_PRIVATE_INCLUDES 
 	src/CgEngineCore/Window.hpp
 	src/CgEngineCore/Rendering/ShaderProgram.hpp
+	src/CgEngineCore/Rendering/VertexBuffer.hpp
+	src/CgEngineCore/Rendering/VertexArray.hpp
 	)
 	
 set(ENGINE_PRIVATE_SOURCES
 	src/CgEngineCore/Application.cpp
 	src/CgEngineCore/Window.cpp
-	src/CgEngineCore/Rendering/ShaderProgram.cpp)
+	src/CgEngineCore/Rendering/ShaderProgram.cpp
+	src/CgEngineCore/Rendering/VertexBuffer.cpp
+	src/CgEngineCore/Rendering/VertexArray.cpp)
 
 set(ENGINE_ALL_SOURCES
 	${ENGINE_PRIVATE_INCLUDES}
