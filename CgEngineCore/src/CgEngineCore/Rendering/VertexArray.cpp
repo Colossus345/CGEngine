@@ -31,7 +31,7 @@ namespace CGEngine{
 		vertexArray.m_elements_count = 0;
 	}
 
-	void VertexArray::add_buffer(const VertexBuffer& vertexbuffer)
+	void VertexArray::add_vertex_buffer(const VertexBuffer& vertexbuffer)
 	{
 		bind();
 		vertexbuffer.bind();
@@ -50,6 +50,14 @@ namespace CGEngine{
 		}
 
 		
+	}
+
+	void VertexArray::set_index_buffer(const IndexBuffer& indexbuffer)
+	{
+		bind();
+		indexbuffer.bind();
+		m_indicies_count = indexbuffer.get_count();
+
 	}
 
 	void VertexArray::bind() const

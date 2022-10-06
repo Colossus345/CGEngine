@@ -12,6 +12,7 @@ set(ENGINE_PRIVATE_INCLUDES
 	src/CgEngineCore/Rendering/ShaderProgram.hpp
 	src/CgEngineCore/Rendering/VertexBuffer.hpp
 	src/CgEngineCore/Rendering/VertexArray.hpp
+	src/CgEngineCore/Rendering/IndexBuffer.hpp
 	)
 	
 set(ENGINE_PRIVATE_SOURCES
@@ -19,7 +20,8 @@ set(ENGINE_PRIVATE_SOURCES
 	src/CgEngineCore/Window.cpp
 	src/CgEngineCore/Rendering/ShaderProgram.cpp
 	src/CgEngineCore/Rendering/VertexBuffer.cpp
-	src/CgEngineCore/Rendering/VertexArray.cpp)
+	src/CgEngineCore/Rendering/VertexArray.cpp
+	src/CgEngineCore/Rendering/IndexBuffer.cpp)
 
 set(ENGINE_ALL_SOURCES
 	${ENGINE_PRIVATE_INCLUDES}

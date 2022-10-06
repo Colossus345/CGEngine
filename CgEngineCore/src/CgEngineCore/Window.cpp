@@ -3,6 +3,7 @@
 #include "CgEngineCore/Rendering/ShaderProgram.hpp"
 #include "CgEngineCore/Rendering/VertexBuffer.hpp"
 #include "CgEngineCore/Rendering/VertexArray.hpp"
+#include "CgEngineCore/Rendering/IndexBuffer.hpp"
 
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
@@ -13,22 +14,23 @@
 namespace CGEngine {
     static bool s_GLFW_initialized = false;
 
-    GLfloat points[] = {
-        0.0f,0.5f,0.0f,
-        0.5f,-0.5f,0.0f,
-        -0.5f,-0.5f,0.0f
-    };
-
-    GLfloat colors[] = {
-        1.0f,0.0f,0.0f,
-        0.0f,1.f,0.f,
-        0.f,0.f,1.f
-    };
-
+ 
     GLfloat positions_colors[] = {
        0.0f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,
        0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 1.0f,
       -0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 1.0f
+        
+    };
+
+    GLfloat positions_colors2[] = {
+       -0.5f,  -0.5f, 0.0f,   1.0f, 1.0f, 0.0f,
+      0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 1.0f,
+      -0.5f, 0.5f, 0.0f,   1.0f, 0.0f, 1.0f,
+       0.5f, 0.5f, 0.0f,   1.0f, 0.0f ,0.0f
+    };
+  
+    GLuint indicies[] = {
+        0,1,2,3,2,1 
     };
 
     const char* vertex_shader =
@@ -49,12 +51,10 @@ namespace CGEngine {
 		" }";
 
     std::unique_ptr<ShaderProgram> p_shader_program;
-    std::unique_ptr<VertexBuffer> p_points_vbo;
-    std::unique_ptr<VertexBuffer> p_colors_vbo;
-    std::unique_ptr<VertexArray> p_vao_2buf;
 
     std::unique_ptr<VertexBuffer> p_positions_colors_vbo;
     std::unique_ptr<VertexArray> p_vao_1buf;
+    std::unique_ptr<IndexBuffer> p_index_buf;
 	
     Window::Window(std::string title, const unsigned int width, const unsigned int height) :m_data({ std::move(title) ,width, height })
 	{
@@ -102,21 +102,13 @@ namespace CGEngine {
 
        
 
-        static bool use_2_buffers = true;
-        ImGui::Checkbox("2 buffers", &use_2_buffers);
+       
 
-        if (use_2_buffers) {
-            p_shader_program->bind();
-            p_vao_2buf->bind();
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+        p_shader_program->bind();
+        p_vao_1buf->bind();
+        glDrawElements(GL_TRIANGLES, p_vao_1buf->get_indicies_count(),GL_UNSIGNED_INT,nullptr);
 
-        }
-        else {
-            p_shader_program->bind();
-            p_vao_1buf->bind();
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-
-        }
+        
         ImGui::End();
 
         ImGui::Render();
@@ -211,18 +203,8 @@ namespace CGEngine {
             return false;
         }
         
-        BufferLayout buffer_layout_1vec3{
 
-            ShaderDataType::Float3
-        };
 
-        p_vao_2buf = std::make_unique<VertexArray>();
-        p_points_vbo = std::make_unique<VertexBuffer>(points, sizeof(points), buffer_layout_1vec3);
-        p_colors_vbo = std::make_unique<VertexBuffer>(colors, sizeof(colors), buffer_layout_1vec3);
-        
-       
-        p_vao_2buf->add_buffer(*p_points_vbo);
-        p_vao_2buf->add_buffer(*p_colors_vbo);
    
         BufferLayout buffer_layout_2vec3{
 
@@ -230,9 +212,11 @@ namespace CGEngine {
             ShaderDataType::Float3
         };
         p_vao_1buf = std::make_unique<VertexArray>();
-        p_positions_colors_vbo = std::make_unique<VertexBuffer>(positions_colors, sizeof(positions_colors), buffer_layout_2vec3);
+        p_positions_colors_vbo = std::make_unique<VertexBuffer>(positions_colors2, sizeof(positions_colors2), buffer_layout_2vec3);
 
-        p_vao_1buf->add_buffer(*p_positions_colors_vbo);
+        p_index_buf = std::make_unique<IndexBuffer>(indicies, sizeof(indicies) / sizeof(GLuint));
+        p_vao_1buf->add_vertex_buffer(*p_positions_colors_vbo);
+        p_vao_1buf->set_index_buffer(*p_index_buf);
         
         return 0;
 	}
