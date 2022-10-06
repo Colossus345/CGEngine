@@ -11,6 +11,10 @@
 #include<imgui.h>
 #include<imgui/backends/imgui_impl_opengl3.h>
 #include<imgui/backends/imgui_impl_glfw.h>
+#include<glm/mat3x3.hpp>
+#include<glm/trigonometric.hpp>
+
+
 namespace CGEngine {
     static bool s_GLFW_initialized = false;
 
@@ -34,27 +38,34 @@ namespace CGEngine {
     };
 
     const char* vertex_shader =
-        "#version 460\n"
-        "layout(location = 0) in vec3 vertex_position;\n"
-        "layout(location = 1) in vec3 vertex_color;\n"
-        "out vec3 color;\n"
-        "void main() {\n"
-        "	color = vertex_color;\n"
-        "	gl_Position = vec4(vertex_position, 1.0);\n"
-        " }";
+        R"(#version 460
+           layout(location = 0) in vec3 vertex_position;
+           layout(location = 1) in vec3 vertex_color;
+           uniform mat4 model_matrix;
+           out vec3 color;
+           void main() {
+              color = vertex_color;
+              gl_Position = model_matrix * vec4(vertex_position, 1.0);
+           }
+        )";
     const char* fragment_shader =
-        "#version 460\n"
-		"in vec3 color;\n"
-		"out vec4 frag_color;\n"
-		"void main() {\n"
-		"	frag_color = vec4(color,1.0); \n"
-		" }";
+        R"(#version 460
+           in vec3 color;
+           out vec4 frag_color;
+           void main() {
+              frag_color = vec4(color, 1.0);
+           }
+        )";
 
     std::unique_ptr<ShaderProgram> p_shader_program;
 
     std::unique_ptr<VertexBuffer> p_positions_colors_vbo;
-    std::unique_ptr<VertexArray> p_vao_1buf;
+    std::unique_ptr<VertexArray> p_vao;
     std::unique_ptr<IndexBuffer> p_index_buf;
+    float scale[3] = { 1.f,1.f,1.f };
+    float rotate = 0.f;
+    float translate[3] = { 0.f,0.f,0.f };
+
 	
     Window::Window(std::string title, const unsigned int width, const unsigned int height) :m_data({ std::move(title) ,width, height })
 	{
@@ -98,15 +109,35 @@ namespace CGEngine {
 
         ImGui::Begin("Background color");
         ImGui::ColorEdit4("Background color", m_background_color);
-     
+        ImGui::SliderFloat3("Scale", scale, 0.1f, 2.f);
+        ImGui::SliderFloat("Rotate", &rotate, 0.0f, 360.f);
+        ImGui::SliderFloat3("Translate", translate, -1.f, 1.f);
 
-       
+        glm::mat4 scale_matrix(
+            scale[0], 0, 0, 0,
+            0, scale[1], 0, 0,
+            0, 0, scale[2], 0,
+            0, 0, 0, 1);
+        float rotate_in_rad = glm::radians(rotate);
+        glm::mat4 rotate_matrix(
+            cos(rotate_in_rad), sin(rotate_in_rad), 0, 0,
+            -sin(rotate_in_rad), cos(rotate_in_rad), 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1);
 
+        glm::mat4 translate_matrix(1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            translate[0], translate[1], translate[2],1);
+
+        glm::mat4 model_matrix = translate_matrix*rotate_matrix*scale_matrix;
+
+        p_shader_program->setMatrix4("model_matrix", model_matrix);
        
 
         p_shader_program->bind();
-        p_vao_1buf->bind();
-        glDrawElements(GL_TRIANGLES, p_vao_1buf->get_indicies_count(),GL_UNSIGNED_INT,nullptr);
+        p_vao->bind();
+        glDrawElements(GL_TRIANGLES, p_vao->get_indicies_count(),GL_UNSIGNED_INT,nullptr);
 
         
         ImGui::End();
@@ -211,12 +242,12 @@ namespace CGEngine {
             ShaderDataType::Float3,
             ShaderDataType::Float3
         };
-        p_vao_1buf = std::make_unique<VertexArray>();
+        p_vao = std::make_unique<VertexArray>();
         p_positions_colors_vbo = std::make_unique<VertexBuffer>(positions_colors2, sizeof(positions_colors2), buffer_layout_2vec3);
 
         p_index_buf = std::make_unique<IndexBuffer>(indicies, sizeof(indicies) / sizeof(GLuint));
-        p_vao_1buf->add_vertex_buffer(*p_positions_colors_vbo);
-        p_vao_1buf->set_index_buffer(*p_index_buf);
+        p_vao->add_vertex_buffer(*p_positions_colors_vbo);
+        p_vao->set_index_buffer(*p_index_buf);
         
         return 0;
 	}

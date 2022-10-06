@@ -3,6 +3,7 @@
 #include"CgEngineCore/Log.hpp"
 
 #include<glad/glad.h>
+#include<glm/gtc/type_ptr.hpp>
 
 namespace CGEngine {
 	bool create_shader(const char* source, const GLenum shader_type, GLuint& shader_id) {
@@ -87,6 +88,11 @@ namespace CGEngine {
 	void ShaderProgram::unbind()
 	{
 		glUseProgram(0);
+	}
+	void ShaderProgram::setMatrix4(const char* name, const glm::mat4& matrix) const
+	{
+		glUniformMatrix4fv(glGetUniformLocation(m_id, name),1, GL_FALSE, glm::value_ptr(matrix));
+
 	}
 	ShaderProgram& ShaderProgram::operator=(ShaderProgram&& shaderProgram)
 	{
