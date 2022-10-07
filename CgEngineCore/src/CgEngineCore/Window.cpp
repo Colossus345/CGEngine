@@ -4,6 +4,7 @@
 #include "CgEngineCore/Rendering/VertexBuffer.hpp"
 #include "CgEngineCore/Rendering/VertexArray.hpp"
 #include "CgEngineCore/Rendering/IndexBuffer.hpp"
+#include "CgEngineCore/Camera.hpp"
 
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
@@ -18,12 +19,12 @@
 namespace CGEngine {
     static bool s_GLFW_initialized = false;
 
- 
+
     GLfloat positions_colors[] = {
        0.0f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,
        0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 1.0f,
       -0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 1.0f
-        
+
     };
 
     GLfloat positions_colors2[] = {
@@ -32,9 +33,9 @@ namespace CGEngine {
       -0.5f, 0.5f, 0.0f,   1.0f, 0.0f, 1.0f,
        0.5f, 0.5f, 0.0f,   1.0f, 0.0f ,0.0f
     };
-  
+
     GLuint indicies[] = {
-        0,1,2,3,2,1 
+        0,1,2,3,2,1
     };
 
     const char* vertex_shader =
@@ -42,10 +43,11 @@ namespace CGEngine {
            layout(location = 0) in vec3 vertex_position;
            layout(location = 1) in vec3 vertex_color;
            uniform mat4 model_matrix;
+           uniform mat4 view_projection_matrix;
            out vec3 color;
            void main() {
               color = vertex_color;
-              gl_Position = model_matrix * vec4(vertex_position, 1.0);
+              gl_Position = view_projection_matrix * model_matrix * vec4(vertex_position, 1.0);
            }
         )";
     const char* fragment_shader =
@@ -65,6 +67,13 @@ namespace CGEngine {
     float scale[3] = { 1.f,1.f,1.f };
     float rotate = 0.f;
     float translate[3] = { 0.f,0.f,0.f };
+
+    float camera_position[3] = { 0.f,0.f,1.f };
+    float camera_rotation[3] = { 0.f,0.f,0.f };
+
+    bool persperctive_camera = false;
+
+    Camera camera;
 
 	
     Window::Window(std::string title, const unsigned int width, const unsigned int height) :m_data({ std::move(title) ,width, height })
@@ -112,6 +121,9 @@ namespace CGEngine {
         ImGui::SliderFloat3("Scale", scale, 0.1f, 2.f);
         ImGui::SliderFloat("Rotate", &rotate, 0.0f, 360.f);
         ImGui::SliderFloat3("Translate", translate, -1.f, 1.f);
+        ImGui::SliderFloat3("camera position", camera_position, -10.f, 10.f);
+        ImGui::SliderFloat3("camera rotation", camera_rotation, 0, 360.f);
+        ImGui::Checkbox("Perspective camera", &persperctive_camera);
 
         glm::mat4 scale_matrix(
             scale[0], 0, 0, 0,
@@ -133,7 +145,11 @@ namespace CGEngine {
         glm::mat4 model_matrix = translate_matrix*rotate_matrix*scale_matrix;
 
         p_shader_program->setMatrix4("model_matrix", model_matrix);
-       
+        camera.set_position_rotation(glm::vec3(camera_position[0], camera_position[1], camera_position[2])
+            , glm::vec3(camera_rotation[0], camera_rotation[1], camera_rotation[2]));
+        camera.set_projection_mode(persperctive_camera ? Camera::ProjectionMode::Perspective : Camera::ProjectionMode::Orthographic);
+
+        p_shader_program->setMatrix4("view_projection_matrix", camera.get_projection_matrix()*camera.get_view_matrix());
 
         p_shader_program->bind();
         p_vao->bind();

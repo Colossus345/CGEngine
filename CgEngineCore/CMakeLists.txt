@@ -5,7 +5,8 @@ set(ENGINE_PROJECT_NAME CgEngineCore)
 set(ENGINE_PUBLIC_INCLUDES 
 	includes/CgEngineCore/Application.hpp
 	includes/CgEngineCore/Log.hpp
-	includes/CgEngineCore/Events/Event.hpp)
+	includes/CgEngineCore/Events/Event.hpp
+	includes/CgEngineCore/Camera.hpp)
 	
 set(ENGINE_PRIVATE_INCLUDES 
 	src/CgEngineCore/Window.hpp
@@ -21,7 +22,8 @@ set(ENGINE_PRIVATE_SOURCES
 	src/CgEngineCore/Rendering/ShaderProgram.cpp
 	src/CgEngineCore/Rendering/VertexBuffer.cpp
 	src/CgEngineCore/Rendering/VertexArray.cpp
-	src/CgEngineCore/Rendering/IndexBuffer.cpp)
+	src/CgEngineCore/Rendering/IndexBuffer.cpp
+	src/CgEngineCore/Camera.cpp)
 
 set(ENGINE_ALL_SOURCES
 	${ENGINE_PRIVATE_INCLUDES}
