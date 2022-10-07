@@ -5,9 +5,13 @@
 #include "CgEngineCore/Rendering/VertexArray.hpp"
 #include "CgEngineCore/Rendering/IndexBuffer.hpp"
 #include "CgEngineCore/Camera.hpp"
+#include "CgEngineCore/Modules/UIModule.hpp"
 
-#include<glad/glad.h>
+#include "CgEngineCore/Rendering/Render_OpenGl.hpp"
+
+
 #include<GLFW/glfw3.h>
+
 
 #include<imgui.h>
 #include<imgui/backends/imgui_impl_opengl3.h>
@@ -17,7 +21,7 @@
 
 
 namespace CGEngine {
-    static bool s_GLFW_initialized = false;
+   
 
 
     GLfloat positions_colors[] = {
@@ -80,10 +84,7 @@ namespace CGEngine {
 	{
 		int result = init();
 
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGui_ImplOpenGL3_Init();
-        ImGui_ImplGlfw_InitForOpenGL(m_pWindow,true);
+        
 	}
 
 	Window::~Window()
@@ -96,22 +97,13 @@ namespace CGEngine {
 	void Window::on_update()
 	{
         
-        glClearColor(m_background_color[0], m_background_color[1], m_background_color[2], m_background_color[3]);
-       
+        Renderer_OpenGL::set_clear_color(m_background_color[0], m_background_color[1], m_background_color[2], m_background_color[3]);
+        Renderer_OpenGL::clear();
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
-
         
-
-
-        ImGuiIO& io = ImGui::GetIO();
-
-        io.DisplaySize.x = static_cast<float>(get_width());
-        io.DisplaySize.y = static_cast<float>(get_height());
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+        
+        UIModule::on_window_update_begin();
+  
 
         //ImGui::ShowDemoWindow();
 
@@ -152,14 +144,16 @@ namespace CGEngine {
         p_shader_program->setMatrix4("view_projection_matrix", camera.get_projection_matrix()*camera.get_view_matrix());
 
         p_shader_program->bind();
-        p_vao->bind();
-        glDrawElements(GL_TRIANGLES, p_vao->get_indicies_count(),GL_UNSIGNED_INT,nullptr);
+
+        Renderer_OpenGL::draw(*p_vao);
+        
+        
 
         
         ImGui::End();
 
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        UIModule::on_window_update_draw();
+       
         /* Swap front and back buffers */
         glfwSwapBuffers(m_pWindow);
 
@@ -176,31 +170,32 @@ namespace CGEngine {
 
         /* Initialize the library */
 
-        if (!s_GLFW_initialized) {
-            if (!glfwInit()) {
-                LOG_CRIT("GLFW failed to init");
-                return -1;
-            }
-                
-        }else
-        s_GLFW_initialized = true;
+
+        glfwSetErrorCallback([](int error_code, const char* description) {
+            LOG_ERROR("GLFW ERROR: {0}", description);
+            });
+        
+        if (!glfwInit()) {
+
+            LOG_CRIT("GLFW failed to init");
+            return -1;
+        }
+                       
 
         /* Create a windowed mode window and its OpenGL context */
         m_pWindow = glfwCreateWindow(m_data.width, m_data.height, m_data.title.c_str(), NULL, NULL);
         if (!m_pWindow)
         {
             LOG_CRIT("Cant create window");
-            glfwTerminate();
             return -1;
         }
 
         /* Make the window's context current */
         glfwMakeContextCurrent(m_pWindow);
 
-        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-        {
-            LOG_CRIT("Failed to initialize GLAD");
-            return -1;
+        if (!Renderer_OpenGL::init(m_pWindow)) {
+            LOG_CRIT("Failed initialize opengl render");
+            return-1;
         }
 
         glfwSetWindowUserPointer(m_pWindow, &m_data);
@@ -240,9 +235,10 @@ namespace CGEngine {
             [](GLFWwindow* pWindow, int width, int height)
             {
 
-                glViewport(0, 0, width, height);
+                Renderer_OpenGL::set_viewport( width, height,0,0);
             }
         );
+        UIModule::on_window_create(m_pWindow);
        
         
         p_shader_program = std::make_unique<ShaderProgram>(vertex_shader, fragment_shader);
@@ -270,6 +266,7 @@ namespace CGEngine {
 
 	void Window::shutdown()
 	{
+        UIModule::on_window_close();
         glfwDestroyWindow(m_pWindow);
         glfwTerminate();
 	}

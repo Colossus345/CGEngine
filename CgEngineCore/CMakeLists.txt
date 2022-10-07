@@ -14,6 +14,8 @@ set(ENGINE_PRIVATE_INCLUDES
 	src/CgEngineCore/Rendering/VertexBuffer.hpp
 	src/CgEngineCore/Rendering/VertexArray.hpp
 	src/CgEngineCore/Rendering/IndexBuffer.hpp
+	src/CgEngineCore/Rendering/Render_OpenGl.hpp
+	src/CgEngineCore/Modules/UIModule.hpp
 	)
 	
 set(ENGINE_PRIVATE_SOURCES
@@ -23,6 +25,8 @@ set(ENGINE_PRIVATE_SOURCES
 	src/CgEngineCore/Rendering/VertexBuffer.cpp
 	src/CgEngineCore/Rendering/VertexArray.cpp
 	src/CgEngineCore/Rendering/IndexBuffer.cpp
+	src/CgEngineCore/Rendering/Render_OpenGl.cpp
+	src/CgEngineCore/Modules/UIModule.cpp
 	src/CgEngineCore/Camera.cpp)
 
 set(ENGINE_ALL_SOURCES
