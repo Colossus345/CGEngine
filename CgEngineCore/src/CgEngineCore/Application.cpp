@@ -116,12 +116,29 @@ namespace  CGEngine{
             });
 
         m_event_dispatcher.add_event_listener<EventKeyReleased>(
-            [&](EventKeyReleased& event) {
+            [&](EventKeyReleased& event)
+            {
                 if (event.key_code <= KeyCode::KEY_Z)
                 {
                     LOG_INFO("[Key released: {0}", static_cast<char>(event.key_code));
                 }
                 Input::ReleaseKey(event.key_code);
+            });
+
+        m_event_dispatcher.add_event_listener<EventMouseButtonPressed>(
+            [&](EventMouseButtonPressed& event) {
+                LOG_INFO("[Mouse button pressed:{0}]", static_cast<int>(event.mouse_button));
+                Input::PressMouseButton(event.mouse_button);
+                on_mouse_button_event(event.mouse_button, event.x_pos, event.y_pos, true);
+                }
+
+            );
+        m_event_dispatcher.add_event_listener<EventMouseButtonReleased>(
+            [&](EventMouseButtonReleased& event)
+            {
+                LOG_INFO("[Mouse button released:{0}]", static_cast<int>(event.mouse_button));
+                Input::ReleaseMouseButton(event.mouse_button);
+                on_mouse_button_event(event.mouse_button, event.x_pos, event.y_pos, false);
             });
 
         m_pWindow->set_event_callback([&](BaseEvent& event)
@@ -214,4 +231,9 @@ namespace  CGEngine{
 		m_pWindow = nullptr;
 		return 0;
 	}
+    glm::vec2 Application::get_cur_pos() const
+    {
+        
+        return m_pWindow->get_cur_pos();
+    }
 }

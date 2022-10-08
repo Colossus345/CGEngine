@@ -19,37 +19,45 @@ namespace CGEngine {
 	void Camera::set_position(const glm::vec3& position)
 	{
 		m_position = position;
-		update_view_matrix();
+		m_update_view_matrix = true;
 	}
 	void Camera::set_rotation(const glm::vec3& rotation)
 	{
 		m_rotation = rotation;
-		update_view_matrix();
+		m_update_view_matrix = true;
 	}
 	void Camera::set_position_rotation(const glm::vec3& position, const glm::vec3& rotation)
 	{
 		m_position = position;
 		m_rotation = rotation;
-		update_view_matrix();
+		m_update_view_matrix = true;
 	}
 	void Camera::set_projection_mode(const ProjectionMode projection_mode)
 	{
 		m_projection_mode = projection_mode;
 	}
+	glm::mat4 Camera::get_view_matrix() 
+	{
+		if (m_update_view_matrix) {
+			update_view_matrix();
+			m_update_view_matrix = false;
+		}
+		return m_view_matrix;
+	}
 	void Camera::move_forward(const float delta)
 	{
 		m_position += m_forward * delta;
-		update_view_matrix();
+		m_update_view_matrix = true;
 	}
 	void Camera::move_right(const float delta)
 	{
 		m_position += m_right * delta;
-		update_view_matrix();
+		m_update_view_matrix = true;
 	}
 	void Camera::move_up(const float delta)
 	{
 		m_position += m_up * delta;
-		update_view_matrix();
+		m_update_view_matrix = true;
 	}
 	void Camera::move_and_rot(const glm::vec3& movement_delta, const glm::vec3& rotation_delta)
 	{
@@ -58,7 +66,7 @@ namespace CGEngine {
 		m_position += m_up * movement_delta.z;
 
 		m_rotation += rotation_delta;
-		update_view_matrix();
+		m_update_view_matrix = true;
 	}
 	void Camera::update_view_matrix()
 	{

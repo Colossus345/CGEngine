@@ -47,6 +47,13 @@ namespace CGEngine {
         
 	}
 
+    glm::vec2 Window::get_cur_pos() const
+    {
+        double x, y;
+        glfwGetCursorPos(m_pWindow, &x, &y);
+        return { x,y };
+    }
+
 	int Window::init()
 	{
         
@@ -104,6 +111,32 @@ namespace CGEngine {
                 case GLFW_REPEAT:
                 {
                     EventKeyPressed event(static_cast<KeyCode> (key), true);
+                    data.eventCallbackFn(event);
+                    break;
+                }
+                }
+            }
+        );
+        
+        glfwSetMouseButtonCallback(m_pWindow, []
+        (GLFWwindow* pWindow, int button,int action, int modes)
+            {
+                auto& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow));
+                double x_pos;
+                double y_pos;
+
+                glfwGetCursorPos(pWindow, &x_pos, &y_pos);
+                switch (action)
+                {
+                case GLFW_PRESS:
+                {
+                    EventMouseButtonPressed event(static_cast<MouseButton> (button), x_pos,y_pos);
+                    data.eventCallbackFn(event);
+                    break;
+                }
+                case GLFW_RELEASE:
+                {
+                    EventMouseButtonReleased event(static_cast<MouseButton> (button), x_pos, y_pos);
                     data.eventCallbackFn(event);
                     break;
                 }
