@@ -6,7 +6,9 @@ set(ENGINE_PUBLIC_INCLUDES
 	includes/CgEngineCore/Application.hpp
 	includes/CgEngineCore/Log.hpp
 	includes/CgEngineCore/Events/Event.hpp
-	includes/CgEngineCore/Camera.hpp)
+	includes/CgEngineCore/Camera.hpp
+	includes/CgEngineCore/Keys.hpp
+	includes/CgEngineCore/Input.hpp)
 	
 set(ENGINE_PRIVATE_INCLUDES 
 	src/CgEngineCore/Window.hpp
@@ -16,6 +18,7 @@ set(ENGINE_PRIVATE_INCLUDES
 	src/CgEngineCore/Rendering/IndexBuffer.hpp
 	src/CgEngineCore/Rendering/Render_OpenGl.hpp
 	src/CgEngineCore/Modules/UIModule.hpp
+	src/CgEngineCore/Input.cpp
 	)
 	
 set(ENGINE_PRIVATE_SOURCES

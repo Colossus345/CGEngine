@@ -1,6 +1,7 @@
 #pragma once
 #include<memory>
 #include"CgEngineCore/Events/Event.hpp"
+#include"Camera.hpp"
 
 namespace CGEngine {
 
@@ -19,11 +20,21 @@ namespace CGEngine {
 
 		virtual void on_update(){}
 
+		virtual void on_ui_draw() {}
+
+		float camera_position[3] = { 0.f,0.f,1.f };
+		float camera_rotation[3] = { 0.f,0.f,0.f };
+
+		bool perspective_camera = true;
+
+		Camera camera{ glm::vec3(-5.f,0.f,0.f) };
+
 	private:
 		std::unique_ptr<class Window> m_pWindow;
 
 		EventDispatcher m_event_dispatcher;
 
 		bool m_bCloseWindow = false;
+		
 	};
 }
