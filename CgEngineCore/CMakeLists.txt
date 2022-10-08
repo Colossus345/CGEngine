@@ -17,6 +17,7 @@ set(ENGINE_PRIVATE_INCLUDES
 	src/CgEngineCore/Rendering/VertexArray.hpp
 	src/CgEngineCore/Rendering/IndexBuffer.hpp
 	src/CgEngineCore/Rendering/Render_OpenGl.hpp
+	src/CgEngineCore/Rendering/Texture2D.hpp
 	src/CgEngineCore/Modules/UIModule.hpp
 	src/CgEngineCore/Input.cpp
 	)
@@ -29,6 +30,7 @@ set(ENGINE_PRIVATE_SOURCES
 	src/CgEngineCore/Rendering/VertexArray.cpp
 	src/CgEngineCore/Rendering/IndexBuffer.cpp
 	src/CgEngineCore/Rendering/Render_OpenGl.cpp
+	src/CgEngineCore/Rendering/Texture2D.cpp
 	src/CgEngineCore/Modules/UIModule.cpp
 	src/CgEngineCore/Camera.cpp)
 
