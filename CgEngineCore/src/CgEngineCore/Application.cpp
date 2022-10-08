@@ -12,7 +12,7 @@
 
 #include "CgEngineCore/Modules/UIModule.hpp"
 
-
+#include<glad/glad.h>
 #include"GLFW/glfw3.h"
 #include<iostream>
 #include"imgui.h"
@@ -29,34 +29,115 @@ namespace  CGEngine{
     };
 
     GLfloat positions_colors2[] = {
-       0.0f, -0.5f, -0.5f,   1.0f, 1.0f, 0.0f,
-        0.0f,  0.5f, -0.5f,   0.0f, 1.0f, 1.0f,
-        0.0f, -0.5f,  0.5f,   1.0f, 0.0f, 1.0f,
-        0.0f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f
+       0.0f, -0.5f, -0.5f,   1.0f, 1.0f, 0.0f,  1.f, 0.f,
+        0.0f,  0.5f, -0.5f,   0.0f, 1.0f, 1.0f, 0.f,0.f,
+        0.0f, -0.5f,  0.5f,   1.0f, 0.0f, 1.0f, 1.f,1.f,
+        0.0f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f, 0.f,1.f
     };
 
     GLuint indicies[] = {
         0,1,2,3,2,1
     };
+    void generate_circle(unsigned char* data,
+        const unsigned int width,
+        const unsigned int height,
+        const unsigned int center_x,
+        const unsigned int center_y,
+        const unsigned int radius,
+        const unsigned char color_r,
+        const unsigned char color_g,
+        const unsigned char color_b)
+    {
+        for (unsigned int x = 0; x < width; ++x)
+        {
+            for (unsigned int y = 0; y < height; ++y)
+            {
+                if ((x - center_x) * (x - center_x) + (y - center_y) * (y - center_y) < radius * radius)
+                {
+                    data[3 * (x + width * y) + 0] = color_r;
+                    data[3 * (x + width * y) + 1] = color_g;
+                    data[3 * (x + width * y) + 2] = color_b;
+                }
+            }
+        }
+    }
+
+    void generate_smile_texture(unsigned char* data,
+        const unsigned int width,
+        const unsigned int height)
+    {
+        // background
+        for (unsigned int x = 0; x < width; ++x)
+        {
+            for (unsigned int y = 0; y < height; ++y)
+            {
+                data[3 * (x + width * y) + 0] = 200;
+                data[3 * (x + width * y) + 1] = 191;
+                data[3 * (x + width * y) + 2] = 231;
+            }
+        }
+
+        // face
+        generate_circle(data, width, height, width * 0.5, height * 0.5, width * 0.4, 255, 255, 0);
+
+        // smile
+        generate_circle(data, width, height, width * 0.5, height * 0.4, width * 0.2, 0, 0, 0);
+        generate_circle(data, width, height, width * 0.5, height * 0.45, width * 0.2, 255, 255, 0);
+
+        // eyes
+        generate_circle(data, width, height, width * 0.35, height * 0.6, width * 0.07, 255, 0, 255);
+        generate_circle(data, width, height, width * 0.65, height * 0.6, width * 0.07, 0, 0, 255);
+    }
+
+    void generate_quads_texture(unsigned char* data,
+        const unsigned int width,
+        const unsigned int height)
+    {
+        for (unsigned int x = 0; x < width; ++x)
+        {
+            for (unsigned int y = 0; y < height; ++y)
+            {
+                if ((x < width / 2 && y < height / 2) || x >= width / 2 && y >= height / 2)
+                {
+                    data[3 * (x + width * y) + 0] = 0;
+                    data[3 * (x + width * y) + 1] = 0;
+                    data[3 * (x + width * y) + 2] = 0;
+                }
+                else
+                {
+                    data[3 * (x + width * y) + 0] = 255;
+                    data[3 * (x + width * y) + 1] = 255;
+                    data[3 * (x + width * y) + 2] = 255;
+                }
+            }
+        }
+    }
 
     const char* vertex_shader =
         R"(#version 460
            layout(location = 0) in vec3 vertex_position;
            layout(location = 1) in vec3 vertex_color;
+           layout(location = 2) in vec2 texture_coord;
            uniform mat4 model_matrix;
            uniform mat4 view_projection_matrix;
            out vec3 color;
+           out vec2 tex_coord;
            void main() {
               color = vertex_color;
+              tex_coord = texture_coord;
               gl_Position = view_projection_matrix * model_matrix * vec4(vertex_position, 1.0);
            }
         )";
     const char* fragment_shader =
         R"(#version 460
            in vec3 color;
+           in vec2 tex_coord;
+           layout(binding = 0) uniform sampler2D inTex;
+            
            out vec4 frag_color;
            void main() {
-              frag_color = vec4(color, 1.0);
+              //frag_color = vec4(color, 1.0);
+              frag_color = texture(inTex,tex_coord);  
            }
         )";
 
@@ -147,6 +228,26 @@ namespace  CGEngine{
 			});
 
 
+        const unsigned int width = 1000;
+        const unsigned int height = 1000;
+        const unsigned int channels = 1000;
+        auto* data = new unsigned char[width * height*channels];
+
+        GLuint textureHandle;
+
+        glCreateTextures(GL_TEXTURE_2D, 1, &textureHandle);
+
+        glTextureStorage2D(textureHandle, 1, GL_RGB8, width, height);
+        generate_smile_texture(data, width, height);
+
+        glTextureSubImage2D(textureHandle,0,0,0,width,height,GL_RGB,GL_UNSIGNED_BYTE,data);
+        glTextureParameteri(textureHandle, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTextureParameteri(textureHandle, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTextureParameteri(textureHandle, GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+        glTextureParameteri(textureHandle, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glBindTextureUnit(0, textureHandle);
+
+        delete[] data;
         ///////////////////////////////////////////////////////////////////
         p_shader_program = std::make_unique<ShaderProgram>(vertex_shader, fragment_shader);
         if (!p_shader_program->isCompiled()) {
@@ -159,7 +260,8 @@ namespace  CGEngine{
         BufferLayout buffer_layout_2vec3{
 
             ShaderDataType::Float3,
-            ShaderDataType::Float3
+            ShaderDataType::Float3,
+            ShaderDataType::Float2
         };
         p_vao = std::make_unique<VertexArray>();
         p_positions_colors_vbo = std::make_unique<VertexBuffer>(positions_colors2, sizeof(positions_colors2), buffer_layout_2vec3);
@@ -208,19 +310,21 @@ namespace  CGEngine{
 
            
 
+            //---------------------------------------//
             UIModule::on_ui_draw_begin();
             bool show = true;
             UIModule::ShowExampleAppDockSpace(&show);
             ImGui::ShowDemoWindow();
-            ImGui::Begin("Background color");               
-            ImGui::ColorEdit4("Background color", m_background_color);
-            ImGui::SliderFloat3("Scale", scale, 0.1f, 2.f);
-            ImGui::SliderFloat("Rotate", &rotate, 0.0f, 360.f);
-            ImGui::SliderFloat3("Translate", translate, -1.f, 1.f);
+            ImGui::Begin("Background Color Window");
+            ImGui::ColorEdit4("Background Color", m_background_color);
+            ImGui::SliderFloat3("scale", scale, 0.f, 2.f);
+            ImGui::SliderFloat("rotate", &rotate, 0.f, 360.f);
+            ImGui::SliderFloat3("translate", translate, -1.f, 1.f);
             ImGui::SliderFloat3("camera position", camera_position, -10.f, 10.f);
             ImGui::SliderFloat3("camera rotation", camera_rotation, 0, 360.f);
             ImGui::Checkbox("Perspective camera", &perspective_camera);
             ImGui::End();
+            //---------------------------------------//
 
             on_ui_draw();
 

@@ -35,6 +35,7 @@ namespace CGEngine {
 	void Camera::set_projection_mode(const ProjectionMode projection_mode)
 	{
 		m_projection_mode = projection_mode;
+		update_projection_matrix();
 	}
 	glm::mat4 Camera::get_view_matrix() 
 	{
@@ -121,6 +122,7 @@ namespace CGEngine {
 				0, 0, -2 / (f - n), 0,
 				0, 0, (-f - n) / (f - n), 1);
 		}
+		
 
 	}
 }
