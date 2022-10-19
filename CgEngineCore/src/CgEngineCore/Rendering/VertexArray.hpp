@@ -22,7 +22,8 @@ namespace CGEngine {
 		void bind() const;
 		static void unbind();
 		size_t get_indicies_count() const { return m_indicies_count; }
-	private:
+		
+	//private:
 		unsigned int m_id = 0;
 		unsigned int m_elements_count = 0;
 		size_t m_indicies_count = 0;

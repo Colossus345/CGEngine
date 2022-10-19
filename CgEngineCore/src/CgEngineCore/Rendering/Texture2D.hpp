@@ -1,5 +1,6 @@
 #pragma once
 
+
 namespace CGEngine {
 
 	class Texture2D {

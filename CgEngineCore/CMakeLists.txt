@@ -18,6 +18,9 @@ set(ENGINE_PRIVATE_INCLUDES
 	src/CgEngineCore/Rendering/IndexBuffer.hpp
 	src/CgEngineCore/Rendering/Render_OpenGl.hpp
 	src/CgEngineCore/Rendering/Texture2D.hpp
+	src/CgEngineCore/Rendering/Model.hpp
+	src/CgEngineCore/Rendering/Mesh.hpp
+	src/CgEngineCore/Rendering/stb_image.h
 	src/CgEngineCore/Modules/UIModule.hpp
 	src/CgEngineCore/Input.cpp
 	)
@@ -31,6 +34,9 @@ set(ENGINE_PRIVATE_SOURCES
 	src/CgEngineCore/Rendering/IndexBuffer.cpp
 	src/CgEngineCore/Rendering/Render_OpenGl.cpp
 	src/CgEngineCore/Rendering/Texture2D.cpp
+	src/CgEngineCore/Rendering/Model.cpp
+	src/CgEngineCore/Rendering/Mesh.cpp
+	src/CgEngineCore/Rendering/stb_image.cpp
 	src/CgEngineCore/Modules/UIModule.cpp
 	src/CgEngineCore/Camera.cpp)
 
@@ -61,6 +67,9 @@ target_link_libraries(${ENGINE_PROJECT_NAME} PRIVATE glad)
 
 add_subdirectory(../external/glm ${CMAKE_CURRENT_BINARY_DIR}/glm)
 target_link_libraries(${ENGINE_PROJECT_NAME} PRIVATE glm)
+
+add_subdirectory(../external/assimp ${CMAKE_CURRENT_BINARY_DIR}/assimp)
+target_link_libraries(${ENGINE_PROJECT_NAME} PRIVATE assimp)
 
 set(IMGUI_INCLUDES 
 	../external/imgui/imgui.h

@@ -61,14 +61,17 @@ namespace CGEngine {
 			STREAM
 		};
 	
-		VertexBuffer(const void* data, const size_t size,BufferLayout buffer_layout, const EUsage usage = VertexBuffer::EUsage::STATIC);
+		VertexBuffer();
 		~VertexBuffer();
+
+
 
 		VertexBuffer(const VertexBuffer&) = delete;
 		VertexBuffer& operator=(const VertexBuffer&) = delete;
 		VertexBuffer& operator=(VertexBuffer&& vertexBuffer) noexcept;
 		VertexBuffer(VertexBuffer&& vertexBuffer) noexcept;
 
+		void init(const void* data, const size_t size, BufferLayout buffer_layout, const EUsage usage = VertexBuffer::EUsage::STATIC);
 		void bind() const;
 		static void unbind();
 		const BufferLayout& get_layout() const { return m_buffer_layout; }

@@ -11,6 +11,7 @@
 #include "CgEngineCore/Rendering/Render_OpenGl.hpp"
 #include "CgEngineCore/Rendering/Texture2D.hpp"
 
+#include "CgEngineCore/Rendering/Model.hpp"
 #include "CgEngineCore/Modules/UIModule.hpp"
 
 
@@ -20,6 +21,9 @@
 #include<glm/mat3x3.hpp>
 #include<glm/trigonometric.hpp>
 
+#include<iostream>
+#include<fstream>
+#include<filesystem>
 
 namespace  CGEngine{
     GLfloat positions_colors[] = {
@@ -115,35 +119,36 @@ namespace  CGEngine{
     }
 
     const char* vertex_shader =
-        R"(#version 460
-           layout(location = 0) in vec3 vertex_position;
-           layout(location = 1) in vec3 vertex_color;
-           layout(location = 2) in vec2 texture_coord;
-           uniform mat4 model_matrix;
-           uniform mat4 view_projection_matrix;
-           uniform int current_frame; 
-           out vec3 color;
-           out vec2 tex_coord_smile;
-           out vec2 tex_coord_quads;
-           void main() {
-              color = vertex_color;
-              tex_coord_smile = texture_coord;
-              tex_coord_quads = texture_coord + vec2(current_frame / 1000.f, current_frame / 1000.f);
-              gl_Position = view_projection_matrix * model_matrix * vec4(vertex_position, 1.0);
-           }
+        R"(#version 440 
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aNormal;
+layout (location = 2) in vec2 aTexCoords;
+
+out vec2 TexCoords;
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
+void main()
+{
+    TexCoords = aTexCoords;    
+    gl_Position = projection * view * model * vec4(aPos, 1.0);
+}
         )";
     const char* fragment_shader =
-        R"(#version 460
-           in vec3 color;
-           in vec2 tex_coord_smile;
-           in vec2 tex_coord_quads;
-           layout (binding = 0) uniform sampler2D InTexture_Smile;
-           layout (binding = 1) uniform sampler2D InTexture_Quads;
-           out vec4 frag_color;
-           void main() {
-              //frag_color = vec4(color, 1.0);
-              frag_color = texture(InTexture_Smile, tex_coord_smile) * texture(InTexture_Quads, tex_coord_quads);
-           }
+        R"(#version 440
+out vec4 FragColor;
+
+in vec2 TexCoords;
+
+uniform sampler2D texture_diffuse1;
+
+void main()
+{    
+    FragColor = texture(texture_diffuse1, TexCoords);
+//FragColor = vec4(1.f,0.f,0.f,1.f);
+}
         )";
 
     std::unique_ptr<ShaderProgram> p_shader_program;
@@ -159,7 +164,8 @@ namespace  CGEngine{
     float translate[3] = { 0.f,0.f,0.f };
     float m_background_color[4] = { 0.4f, .4f, .71f, 1.0f };
 
-    
+    float deltaTime = 0.0f;
+    float lastFrame = 0.0f;
 	Application::Application()
 	{
         LOG_INFO("Start app");
@@ -256,9 +262,11 @@ namespace  CGEngine{
         if (!p_shader_program->isCompiled()) {
             return false;
         }
+        stbi_set_flip_vertically_on_load(true);
 
 
-
+        Model cube("C:/Users/Syndafloden/Documents/CgEngine/assets/backpack/backpack.obj");
+        //Model cube("C:\\Users\\Syndafloden\\Documents\\CgEngine\\assets\\cube.obj");
 
         BufferLayout buffer_layout_2vec3{
 
@@ -267,15 +275,25 @@ namespace  CGEngine{
             ShaderDataType::Float2
         };
         p_vao = std::make_unique<VertexArray>();
-        p_positions_colors_vbo = std::make_unique<VertexBuffer>(positions_colors2, sizeof(positions_colors2), buffer_layout_2vec3);
+        p_positions_colors_vbo = std::make_unique<VertexBuffer>();
 
-        p_index_buf = std::make_unique<IndexBuffer>(indicies, sizeof(indicies) / sizeof(GLuint));
+        p_positions_colors_vbo->init(positions_colors2, sizeof(positions_colors2), buffer_layout_2vec3);
+        
+        p_index_buf = std::make_unique<IndexBuffer>();
+        p_index_buf->init(indicies, sizeof(indicies) / sizeof(GLuint));
+        
         p_vao->add_vertex_buffer(*p_positions_colors_vbo);
         p_vao->set_index_buffer(*p_index_buf);
 		///////////////////////////////////////////////////////////////////
 
         static int current_frame = 0;
+        glEnable(GL_DEPTH_TEST);
 		while (!m_bCloseWindow) {
+            float currentFrame = glfwGetTime();
+            deltaTime = currentFrame - lastFrame;
+            lastFrame = currentFrame;
+            //LOG_INFO("FPS:{0}",1 / deltaTime);
+
             Renderer_OpenGL::set_clear_color(m_background_color[0], m_background_color[1], m_background_color[2], m_background_color[3]);
             Renderer_OpenGL::clear();
             /* Render here */
@@ -302,11 +320,21 @@ namespace  CGEngine{
             glm::mat4 model_matrix = translate_matrix * rotate_matrix * scale_matrix;
 
             p_shader_program->setMatrix4("model_matrix", model_matrix);
-            p_shader_program->setInt("current_frame", current_frame++);
+            
             camera.set_projection_mode(perspective_camera ? Camera::ProjectionMode::Perspective : Camera::ProjectionMode::Orthographic);
 
-            p_shader_program->setMatrix4("view_projection_matrix", camera.get_projection_matrix() * camera.get_view_matrix());
-            Renderer_OpenGL::draw(*p_vao);
+            p_shader_program->setMatrix4("view", camera.get_view_matrix());
+            p_shader_program->setMatrix4("projection", camera.get_projection_matrix());
+
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // смещаем вниз чтобы быть в центре сцены
+            model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// объект слишком большой для нашей сцены, поэтому немного уменьшим его
+            p_shader_program->setMatrix4("model", model);
+
+            for (int i = 0; i < cube.meshes.size(); i++) {
+                cube.meshes[i].Draw(p_shader_program->get_id());
+            }
+            //Renderer_OpenGL::draw(*p_vao);
 
 
            
@@ -318,7 +346,7 @@ namespace  CGEngine{
             UIModule::on_ui_draw_begin();
             bool show = true;
             UIModule::ShowExampleAppDockSpace(&show);
-            ImGui::ShowDemoWindow();
+            
             ImGui::Begin("Background Color Window");
             ImGui::ColorEdit4("Background Color", m_background_color);
             ImGui::SliderFloat3("scale", scale, 0.f, 2.f);

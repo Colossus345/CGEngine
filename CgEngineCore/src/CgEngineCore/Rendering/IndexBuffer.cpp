@@ -17,11 +17,11 @@ namespace CGEngine {
 
 	
 
-	IndexBuffer::IndexBuffer(const void* data, const size_t count, const VertexBuffer::EUsage usage):m_count(count)
+	IndexBuffer::IndexBuffer() 
+		:m_id(0),
+		m_count(0)
 	{
-		glGenBuffers(1, &m_id);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(GLuint), data, usage_to_GLenum(usage));
+		
 	}
 
 	IndexBuffer::~IndexBuffer()
@@ -44,6 +44,15 @@ namespace CGEngine {
 	{
 		indexBuffer.m_id = 0;
 		indexBuffer.m_count = 0;
+	}
+
+	void IndexBuffer::init(const void* data, const size_t count, const VertexBuffer::EUsage usage)
+		
+	{
+		m_count = count;
+		glGenBuffers(1, &m_id);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(GLuint), data, usage_to_GLenum(usage));
 	}
 
 	void IndexBuffer::bind() const

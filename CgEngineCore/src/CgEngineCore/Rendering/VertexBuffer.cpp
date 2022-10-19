@@ -74,10 +74,9 @@ namespace CGEngine {
 		return GL_STREAM_DRAW;
 	}
 
-	VertexBuffer::VertexBuffer(const void* data, const size_t size, BufferLayout buffer_layout , const EUsage usage):m_buffer_layout(std::move(buffer_layout)) {
-		glGenBuffers(1, &m_id);
-		glBindBuffer(GL_ARRAY_BUFFER, m_id);
-		glBufferData(GL_ARRAY_BUFFER, size, data, usage_to_GLenum(usage));
+	VertexBuffer::VertexBuffer() :m_id(0), m_buffer_layout({})
+	{
+		
 	}
 	VertexBuffer::~VertexBuffer(){
 		glDeleteBuffers(1, &m_id);
@@ -94,6 +93,14 @@ namespace CGEngine {
 	{
 		m_id = vertexBuffer.m_id;
 		vertexBuffer.m_id = 0;
+	}
+
+	void VertexBuffer::init(const void* data, const size_t size, BufferLayout buffer_layout, const EUsage usage)
+	{
+		m_buffer_layout = buffer_layout;
+		glGenBuffers(1, &m_id);
+		glBindBuffer(GL_ARRAY_BUFFER, m_id);
+		glBufferData(GL_ARRAY_BUFFER, size, data, usage_to_GLenum(usage));
 	}
 
 	void VertexBuffer::bind() const

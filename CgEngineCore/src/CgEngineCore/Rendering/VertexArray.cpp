@@ -56,8 +56,8 @@ namespace CGEngine{
 	{
 		bind();
 		indexbuffer.bind();
-		m_indicies_count = indexbuffer.get_count();
-
+		m_indicies_count = static_cast<size_t>(indexbuffer.get_count());
+		
 	}
 
 	void VertexArray::bind() const
