@@ -1,18 +1,24 @@
 #include"Texture2D.hpp"
+#include"CgEngineCore/Log.hpp"
 
 #include<algorithm>
 #include<glad/glad.h>
 #include<cmath>
 
 namespace CGEngine {
-	Texture2D::Texture2D(const unsigned char* data, const unsigned int width, const unsigned int height)
+	Texture2D::Texture2D(const unsigned char* data, const unsigned int width, const unsigned int height,unsigned int format)
 		:m_width(width)
 		,m_height(height)
 	{
+        
         glCreateTextures(GL_TEXTURE_2D, 1, &m_id);
         const GLsizei mip_levels = static_cast<GLsizei>(std::log2(std::max(m_width, m_height))) + 1;
         glTextureStorage2D(m_id, mip_levels, GL_RGB8, width, height);
-        glTextureSubImage2D(m_id, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+        if (format < 4) {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 4 - format);
+        }
+        glTextureSubImage2D(m_id, 0, 0, 0, width, height, format,GL_UNSIGNED_BYTE, data);
+
         glTextureParameteri(m_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTextureParameteri(m_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTextureParameteri(m_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);

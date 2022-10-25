@@ -43,17 +43,15 @@ namespace CGEngine {
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
         std::vector<Texture> textures;
-        //VertexArray VAO;
-       // unsigned int VAO, VBO, EBO;
-
+        
         std::unique_ptr<VertexArray> VAO;
         std::unique_ptr<VertexBuffer> VBO;
         std::unique_ptr<IndexBuffer> EBO;
-        // Конструктор
+        
         Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
         
 
-          // Рендеринг меша
+        
         void Draw(unsigned int id);
           
           

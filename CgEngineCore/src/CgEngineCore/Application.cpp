@@ -1,4 +1,4 @@
-#include "CgEngineCore/Application.hpp"
+п»ї#include "CgEngineCore/Application.hpp"
 #include "CgEngineCore/Log.hpp"
 #include "CgEngineCore/Window.hpp"
 #include "CgEngineCore/Input.hpp"
@@ -10,6 +10,9 @@
 #include "CgEngineCore/Camera.hpp"
 #include "CgEngineCore/Rendering/Render_OpenGl.hpp"
 #include "CgEngineCore/Rendering/Texture2D.hpp"
+#include "CgEngineCore/Rendering/StencilBuffer.hpp"
+#include "CgEngineCore/Rendering/FrameBuffer.hpp"
+
 
 #include "CgEngineCore/Rendering/Model.hpp"
 #include "CgEngineCore/Modules/UIModule.hpp"
@@ -33,96 +36,124 @@ namespace  CGEngine{
 
     };
 
-    GLfloat positions_colors2[] = {
-       0.0f, -0.5f, -0.5f,   1.0f, 1.0f, 0.0f,  1.f, 0.f,
-        0.0f,  0.5f, -0.5f,   0.0f, 1.0f, 1.0f, 0.f,0.f,
-        0.0f, -0.5f,  0.5f,   1.0f, 0.0f, 1.0f, 1.f,1.f,
-        0.0f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f, 0.f,1.f
+    float quadVertices[] = { 
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+
+        -1.0f,  1.0f,  0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f, 1.0f
     };
 
     GLuint indicies[] = {
         0,1,2,3,2,1
     };
-    void generate_circle(unsigned char* data,
-        const unsigned int width,
-        const unsigned int height,
-        const unsigned int center_x,
-        const unsigned int center_y,
-        const unsigned int radius,
-        const unsigned char color_r,
-        const unsigned char color_g,
-        const unsigned char color_b)
-    {
-        for (unsigned int x = 0; x < width; ++x)
-        {
-            for (unsigned int y = 0; y < height; ++y)
-            {
-                if ((x - center_x) * (x - center_x) + (y - center_y) * (y - center_y) < radius * radius)
-                {
-                    data[3 * (x + width * y) + 0] = color_r;
-                    data[3 * (x + width * y) + 1] = color_g;
-                    data[3 * (x + width * y) + 2] = color_b;
-                }
-            }
-        }
-    }
-
-    void generate_smile_texture(unsigned char* data,
-        const unsigned int width,
-        const unsigned int height)
-    {
-        // background
-        for (unsigned int x = 0; x < width; ++x)
-        {
-            for (unsigned int y = 0; y < height; ++y)
-            {
-                data[3 * (x + width * y) + 0] = 200;
-                data[3 * (x + width * y) + 1] = 191;
-                data[3 * (x + width * y) + 2] = 231;
-            }
-        }
-
-        // face
-        generate_circle(data, width, height, width * 0.5, height * 0.5, width * 0.4, 255, 255, 0);
-
-        // smile
-        generate_circle(data, width, height, width * 0.5, height * 0.4, width * 0.2, 0, 0, 0);
-        generate_circle(data, width, height, width * 0.5, height * 0.45, width * 0.2, 255, 255, 0);
-
-        // eyes
-        generate_circle(data, width, height, width * 0.35, height * 0.6, width * 0.07, 255, 0, 255);
-        generate_circle(data, width, height, width * 0.65, height * 0.6, width * 0.07, 0, 0, 255);
-    }
-
-    void generate_quads_texture(unsigned char* data,
-        const unsigned int width,
-        const unsigned int height)
-    {
-        for (unsigned int x = 0; x < width; ++x)
-        {
-            for (unsigned int y = 0; y < height; ++y)
-            {
-                if ((x < width / 2 && y < height / 2) || x >= width / 2 && y >= height / 2)
-                {
-                    data[3 * (x + width * y) + 0] = 0;
-                    data[3 * (x + width * y) + 1] = 0;
-                    data[3 * (x + width * y) + 2] = 0;
-                }
-                else
-                {
-                    data[3 * (x + width * y) + 0] = 255;
-                    data[3 * (x + width * y) + 1] = 255;
-                    data[3 * (x + width * y) + 2] = 255;
-                }
-            }
-        }
-    }
 
     const char* vertex_shader =
         R"(#version 440 
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexCoords;
+
+out vec2 TexCoords;
+out vec3 FragPos;
+out vec3 Normal;
+
+uniform mat4 model_matrix;
+uniform mat4 view;
+uniform mat4 projection;
+
+void main()
+{
+    TexCoords = aTexCoords;    
+    
+    FragPos = vec3(model_matrix*vec4(aPos,1.0f));
+    Normal = mat3(transpose(inverse(model_matrix))) * aNormal;  
+    gl_Position = projection * view * model_matrix * vec4(aPos, 1.0);
+}
+        )";
+    const char* lvs =
+        R"(#version 440 
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aNormal;
+layout (location = 2) in vec2 aTexCoords;
+
+
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
+void main()
+{
+    
+    gl_Position = projection * view * model * vec4(aPos, 1.0);
+}
+        )";
+    const char* fls =
+        R"(#version 440
+out vec4 FragColor;
+
+uniform vec3 objectColor;
+uniform vec3 lightColor;
+
+void main()
+{    
+    FragColor = vec4(1.f);
+}
+        )";
+    const char* fragment_shader =
+        R"(#version 440
+out vec4 FragColor;
+
+in vec2 TexCoords;
+in vec3 Normal;  
+in vec3 FragPos;  
+  
+uniform sampler2D texture_diffuse1;
+
+uniform vec3 lightPos; 
+uniform vec3 viewPos; 
+uniform vec3 lightColor;
+uniform vec3 objectColor;
+
+void main()
+{    
+    float ambientStrength = 0.1;
+    vec3 ambient = ambientStrength * lightColor;
+
+    vec3 norm = normalize(Normal);
+    vec3 lightDir = normalize(lightPos - FragPos);
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = diff * lightColor;
+
+
+    float specularStrength = 0.5;
+    vec3 viewDir = normalize(viewPos - FragPos);
+    vec3 reflectDir = reflect(-lightDir, norm);  
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+    vec3 specular = specularStrength * spec * lightColor;  
+
+    vec3 result = (ambient + diffuse + specular) * objectColor;
+    FragColor = texture(texture_diffuse1, TexCoords)*vec4(result,1.);
+    
+}
+        )";
+    const char* f_framebuffer_shader = R"(#version 330 core
+out vec4 FragColor;
+
+in vec2 TexCoords;
+
+uniform sampler2D texture1;
+
+void main()
+{    
+    FragColor = texture(texture1, TexCoords);
+})";
+    const char* v_framebuffer_shader = R"(#version 330 core
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec2 aTexCoords;
 
 out vec2 TexCoords;
 
@@ -134,31 +165,45 @@ void main()
 {
     TexCoords = aTexCoords;    
     gl_Position = projection * view * model * vec4(aPos, 1.0);
-}
-        )";
-    const char* fragment_shader =
-        R"(#version 440
+})";
+
+
+    const char* f_framebuffer_screenShader =  R"(#version 330 core
 out vec4 FragColor;
 
 in vec2 TexCoords;
 
-uniform sampler2D texture_diffuse1;
+uniform sampler2D screenTexture;
 
 void main()
-{    
-    FragColor = texture(texture_diffuse1, TexCoords);
-//FragColor = vec4(1.f,0.f,0.f,1.f);
-}
-        )";
+{
+    vec3 col = texture(screenTexture, TexCoords).rgb;
+    FragColor = vec4(col, 1.0);
+} )";
+    const char* v_framebuffer_screenShader =  R"(#version 330 core
+layout (location = 0) in vec2 aPos;
+layout (location = 1) in vec2 aTexCoords;
+
+out vec2 TexCoords;
+
+void main()
+{
+    TexCoords = aTexCoords;
+    gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
+})";
+
+
 
     std::unique_ptr<ShaderProgram> p_shader_program;
-
+    std::unique_ptr<ShaderProgram> p_light_shader;
+    std::unique_ptr<ShaderProgram> p_framebuffer_shader;
+    std::unique_ptr<ShaderProgram> p_screen_shader;
     std::unique_ptr<VertexBuffer> p_positions_colors_vbo;
     std::unique_ptr<VertexArray> p_vao;
     std::unique_ptr<IndexBuffer> p_index_buf;
-    std::unique_ptr<Texture2D> p_texture_smile;
+    std::unique_ptr<Texture2D> p_texture_miss;
     std::unique_ptr<Texture2D> p_texture_quad;
-
+    std::unique_ptr<FrameBuffer> p_framebuffer;
     float scale[3] = { 1.f,1.f,1.f };
     float rotate = 0.f;
     float translate[3] = { 0.f,0.f,0.f };
@@ -215,7 +260,7 @@ void main()
             {
                 if (event.key_code <= KeyCode::KEY_Z)
                 {
-                    LOG_INFO("[Key released: {0}", static_cast<char>(event.key_code));
+                    LOG_INFO("[Key released]: {0}", static_cast<char>(event.key_code));
                 }
                 Input::ReleaseKey(event.key_code);
             });
@@ -226,8 +271,7 @@ void main()
                 Input::PressMouseButton(event.mouse_button);
                 on_mouse_button_event(event.mouse_button, event.x_pos, event.y_pos, true);
                 }
-
-            );
+         );
         m_event_dispatcher.add_event_listener<EventMouseButtonReleased>(
             [&](EventMouseButtonReleased& event)
             {
@@ -242,61 +286,102 @@ void main()
 			});
 
 
-        const unsigned int width = 1000;
-        const unsigned int height = 1000;
-        const unsigned int channels = 1000;
-        auto* data = new unsigned char[width * height*channels];
+        int width;
+        int height;
+        int format;
+        unsigned char* data = stbi_load("C:/Users/Syndafloden/Documents/CGEngine/assets/miss.png", &width, &height, &format, 0);
         
+        if (!data) {
+            LOG_CRIT("Cant load empty tex");
+            return-1;
+        }
         
-        generate_smile_texture(data, width, height);
-        p_texture_smile = std::make_unique<Texture2D>(data, width, height);
-        p_texture_smile->bind(0);
 
-        generate_quads_texture(data, width, height);
-        p_texture_quad = std::make_unique<Texture2D>(data, width, height);
-        p_texture_quad->bind(1);
+        p_texture_miss = std::make_unique<Texture2D>(data, static_cast<unsigned int>(width), static_cast<unsigned int> (height));
+        p_texture_miss->bind(0);
 
-        delete[] data;
+        stbi_image_free(data);
+
+       
+
+        
         ///////////////////////////////////////////////////////////////////
         p_shader_program = std::make_unique<ShaderProgram>(vertex_shader, fragment_shader);
         if (!p_shader_program->isCompiled()) {
             return false;
         }
+        p_light_shader = std::make_unique<ShaderProgram>(lvs, fls);
+        if (!p_shader_program->isCompiled()) {
+            return false;
+        }
+        p_framebuffer_shader = std::make_unique<ShaderProgram>( v_framebuffer_shader, f_framebuffer_shader);
+        if (!p_framebuffer_shader->isCompiled()) {
+            return false;
+        }
+        p_screen_shader = std::make_unique<ShaderProgram>(v_framebuffer_screenShader, f_framebuffer_screenShader);
+        if (!p_screen_shader->isCompiled()) {
+            return false;
+        }
+
         stbi_set_flip_vertically_on_load(true);
 
 
-        Model cube("C:/Users/Syndafloden/Documents/CgEngine/assets/backpack/backpack.obj");
-        //Model cube("C:\\Users\\Syndafloden\\Documents\\CgEngine\\assets\\cube.obj");
+        Model cube("C:/Users/Syndafloden/Documents/CgEngine/assets/cube.obj");
+        Model outcube("C:/Users/Syndafloden/Documents/CgEngine/assets/cube.obj");
+        //Model back("C:/Users/Syndafloden/Documents/CgEngine/assets/backpack/backpack.obj");
+        Model lightcube("C:/Users/Syndafloden/Documents/CgEngine/assets/cube.obj");
 
         BufferLayout buffer_layout_2vec3{
 
-            ShaderDataType::Float3,
-            ShaderDataType::Float3,
-            ShaderDataType::Float2
+            ShaderDataType::Float4,
+            ShaderDataType::Float4
         };
         p_vao = std::make_unique<VertexArray>();
         p_positions_colors_vbo = std::make_unique<VertexBuffer>();
 
-        p_positions_colors_vbo->init(positions_colors2, sizeof(positions_colors2), buffer_layout_2vec3);
+        p_positions_colors_vbo->init(quadVertices, sizeof(quadVertices), buffer_layout_2vec3);
         
         p_index_buf = std::make_unique<IndexBuffer>();
         p_index_buf->init(indicies, sizeof(indicies) / sizeof(GLuint));
         
         p_vao->add_vertex_buffer(*p_positions_colors_vbo);
         p_vao->set_index_buffer(*p_index_buf);
-		///////////////////////////////////////////////////////////////////
+		
 
+
+        p_framebuffer = std::make_unique<FrameBuffer>(m_pWindow->get_width(), m_pWindow->get_height());
+        
+        if (!p_framebuffer->init()){}
         static int current_frame = 0;
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glFrontFace(GL_CCW);
+
+        
+
+       
+
 		while (!m_bCloseWindow) {
+            
+           
             float currentFrame = glfwGetTime();
             deltaTime = currentFrame - lastFrame;
             lastFrame = currentFrame;
             //LOG_INFO("FPS:{0}",1 / deltaTime);
+            float fps = 1 / deltaTime;
+            std::string title = "FPS:" +std::to_string(fps) ;
+            glfwSetWindowTitle(m_pWindow->m_pWindow,(title).c_str());
 
+
+            p_framebuffer->bind();
+            glEnable(GL_DEPTH_TEST);
             Renderer_OpenGL::set_clear_color(m_background_color[0], m_background_color[1], m_background_color[2], m_background_color[3]);
-            Renderer_OpenGL::clear();
-            /* Render here */
+            Renderer_OpenGL::clear(1,1);
+            
+           
+
+            
 
             p_shader_program->bind();
 
@@ -326,19 +411,56 @@ void main()
             p_shader_program->setMatrix4("view", camera.get_view_matrix());
             p_shader_program->setMatrix4("projection", camera.get_projection_matrix());
 
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // смещаем вниз чтобы быть в центре сцены
-            model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// объект слишком большой для нашей сцены, поэтому немного уменьшим его
-            p_shader_program->setMatrix4("model", model);
+            p_shader_program->setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
+            p_shader_program->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+            p_shader_program->setVec3("lightPos", glm::vec3(1.2f));
+            p_shader_program->setVec3("viewPos", camera.get_camera_position());
 
+            p_shader_program->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+            glm::mat4 model = glm::mat4(1.0f);
+            model_matrix = glm::translate(model_matrix, glm::vec3(0.0f, 0.0f, 0.0f));
+            model_matrix = glm::scale(model_matrix, glm::vec3(1.0f, 1.0f, 1.0f));	 
+            p_shader_program->setMatrix4("model_matrix", model_matrix);
+            
+           
+            
             for (int i = 0; i < cube.meshes.size(); i++) {
                 cube.meshes[i].Draw(p_shader_program->get_id());
             }
-            //Renderer_OpenGL::draw(*p_vao);
-
+            
+            
 
            
 
+            p_light_shader->bind();
+
+
+            p_light_shader->setMatrix4("model_matrix", model_matrix);
+
+            camera.set_projection_mode(perspective_camera ? Camera::ProjectionMode::Perspective : Camera::ProjectionMode::Orthographic);
+           
+            
+            p_light_shader->setMatrix4("view", camera.get_view_matrix());
+            p_light_shader->setMatrix4("projection", camera.get_projection_matrix());
+
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(1.2f, 1.0f, 1.0f)); 
+            model = glm::scale(model, glm::vec3(0.5f));	
+            p_light_shader->setMatrix4("model", model);
+            for (int i = 0; i < cube.meshes.size(); i++) {
+                lightcube.meshes[i].Draw(p_light_shader->get_id());
+            }
+            p_framebuffer->unbind();
+            glDisable(GL_DEPTH_TEST);
+            Renderer_OpenGL::clear();
+
+
+
+
+            p_screen_shader->bind();
+        
+
+            
 
            
 
@@ -348,6 +470,7 @@ void main()
             UIModule::ShowExampleAppDockSpace(&show);
             
             ImGui::Begin("Background Color Window");
+            ImGui::ShowDemoWindow();
             ImGui::ColorEdit4("Background Color", m_background_color);
             ImGui::SliderFloat3("scale", scale, 0.f, 2.f);
             ImGui::SliderFloat("rotate", &rotate, 0.f, 360.f);

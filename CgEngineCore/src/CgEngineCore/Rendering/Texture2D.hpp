@@ -5,7 +5,7 @@ namespace CGEngine {
 
 	class Texture2D {
 	public:
-		Texture2D(const unsigned char* data, const unsigned int width, const unsigned int height);
+		Texture2D(const unsigned char* data, const unsigned int width, const unsigned int height,unsigned int format = 4);
 		~Texture2D();
 
 		Texture2D(const Texture2D&) = delete;

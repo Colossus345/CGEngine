@@ -11,8 +11,9 @@ namespace CGEngine {
 		static bool init(GLFWwindow* pWindow);
 
 		static void draw(const VertexArray& vertexArray);
+		static void draw_with_tex(const VertexArray& vertexArray,unsigned int texhan);
 		static void set_clear_color(const float r, const float g, const float b, const float a);
-		static void clear();
+		static void clear(bool depthEnable = false,bool stencilEnable = false);
 		static void set_viewport(const unsigned int width, const unsigned int height, 
 			const unsigned int left_offset, const unsigned int bottom_offset);
 

@@ -167,6 +167,14 @@ namespace CGEngine {
                 textures_loaded.push_back(texture); // сохраняем текстуру в массиве с уже загруженными текстурами, тем самым гарантируя, что у нас не появятся без необходимости дубликаты текстур
             }
         }
+        if (textures.size() == 0) {
+            Texture texture;
+            texture.id = TextureFromFile("miss.png", "C:/Users/Syndafloden/Documents/CGEngine/assets");
+            texture.type = typeName;
+            texture.path = "miss";
+            textures.push_back(texture);
+            
+        }
         return textures;
     }
 
@@ -182,8 +190,17 @@ namespace CGEngine {
 
         int width, height, nrComponents;
         unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
-        if (data)
+        if (!data)
         {
+            LOG_WARN("Texture failed to load at path:{0} ", path);
+            
+            data = stbi_load("C:/Users/Syndafloden/Documents/CGEngine/assets/miss.png" , &width, &height, &nrComponents, 0);
+
+            
+        }
+       
+            
+           
             GLenum format;
             if (nrComponents == 1)
                 format = GL_RED;
@@ -193,6 +210,9 @@ namespace CGEngine {
                 format = GL_RGBA;
 
             glBindTexture(GL_TEXTURE_2D, textureID);
+            if (format != GL_RGBA) {
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            }
             glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
             glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -202,12 +222,7 @@ namespace CGEngine {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
             stbi_image_free(data);
-        }
-        else
-        {
-            LOG_WARN( "Texture failed to load at path:{0} " ,path );
-            stbi_image_free(data);
-        }
+        
 
         return textureID;
     }

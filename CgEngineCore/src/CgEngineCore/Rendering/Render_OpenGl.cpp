@@ -31,14 +31,22 @@ namespace CGEngine {
 		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(vertexArray.get_indicies_count()), GL_UNSIGNED_INT, nullptr);
 	}
 
+	void Renderer_OpenGL::draw_with_tex(const VertexArray& vertexArray, unsigned int texhan)
+	{
+		vertexArray.bind();
+		glBindTexture(GL_TEXTURE_2D, texhan);
+		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(vertexArray.get_indicies_count()), GL_UNSIGNED_INT, nullptr);
+
+	}
+
 	void Renderer_OpenGL::set_clear_color(const float r, const float g, const float b, const float a)
 	{
 		glClearColor(r, g, b, a);
 	}
 
-	void Renderer_OpenGL::clear()
+	void Renderer_OpenGL::clear(bool depthEnable, bool stencilEnable )
 	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT * depthEnable  | GL_STENCIL_BUFFER_BIT * stencilEnable);
 	}
 
 	void Renderer_OpenGL::set_viewport(const unsigned int width, const unsigned int height, const unsigned int left_offset, const unsigned int bottom_offset)

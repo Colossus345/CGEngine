@@ -33,7 +33,8 @@ namespace CGEngine {
 		void set_event_callback(const EventCallbackFn callback) {
 			m_data.eventCallbackFn = callback;
 		}
-
+		void set_title(std::string ntitle) { m_data.title = ntitle; }
+		GLFWwindow* m_pWindow;
 	private:
 
 		struct WindowData {
@@ -49,7 +50,7 @@ namespace CGEngine {
 
 		WindowData m_data;
 
-		GLFWwindow* m_pWindow;
+		
 
 		
 

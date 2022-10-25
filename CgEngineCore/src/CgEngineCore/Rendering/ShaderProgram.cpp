@@ -6,6 +6,10 @@
 #include<glm/gtc/type_ptr.hpp>
 
 namespace CGEngine {
+
+	
+	
+
 	bool create_shader(const char* source, const GLenum shader_type, GLuint& shader_id) {
 		shader_id = glCreateShader(shader_type);
 		glShaderSource(shader_id, 1, &source, nullptr);
@@ -93,6 +97,10 @@ namespace CGEngine {
 	{
 		glUniformMatrix4fv(glGetUniformLocation(m_id, name),1, GL_FALSE, glm::value_ptr(matrix));
 
+	}
+	void ShaderProgram::setVec3(const char* name, const glm::vec3& vec) const
+	{
+		glUniform3fv(glGetUniformLocation(m_id,name),1,glm::value_ptr(vec));
 	}
 	void ShaderProgram::setInt(const char* name, const int value) const
 	{
