@@ -4,6 +4,7 @@
 #include<algorithm>
 #include<glad/glad.h>
 #include<cmath>
+#include<map>
 
 namespace CGEngine {
 	Texture2D::Texture2D(const unsigned char* data, const unsigned int width, const unsigned int height,unsigned int format)
@@ -11,6 +12,7 @@ namespace CGEngine {
 		,m_height(height)
 	{
         
+
         glCreateTextures(GL_TEXTURE_2D, 1, &m_id);
         const GLsizei mip_levels = static_cast<GLsizei>(std::log2(std::max(m_width, m_height))) + 1;
         glTextureStorage2D(m_id, mip_levels, GL_RGB8, width, height);

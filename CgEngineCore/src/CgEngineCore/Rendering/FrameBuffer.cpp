@@ -5,11 +5,10 @@
 namespace CGEngine {
 	FrameBuffer::FrameBuffer(unsigned int width, unsigned int height) 
 		:m_width(width), m_height(height), m_id(0), m_texture_id(0),rbo(0)
-	
 	{
 	
-		glGenFramebuffers(1, &m_id);
 		
+		init();
 		
 	}
 	FrameBuffer::~FrameBuffer()
@@ -48,7 +47,15 @@ namespace CGEngine {
 	}
 	bool FrameBuffer::init()
 	{
-		bind();
+
+		if (m_id || m_texture_id || rbo) {
+			glDeleteFramebuffers(1,&m_id);
+			glDeleteRenderbuffers(1, &rbo);
+			glDeleteTextures(1, &m_texture_id);
+		}
+
+		glGenFramebuffers(1, &m_id);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_id);
 		glGenTextures(1, &m_texture_id);
 		glBindTexture(GL_TEXTURE_2D, m_texture_id);
 
@@ -80,8 +87,15 @@ namespace CGEngine {
 		}
 			
 		
-		unbind();
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		return result;
+	}
+	void FrameBuffer::resize(unsigned int new_width, unsigned int new_height)
+	{
+		m_width = new_width;
+		m_height = new_height;
+
+		init();
 	}
 	void FrameBuffer::bind()
 	{

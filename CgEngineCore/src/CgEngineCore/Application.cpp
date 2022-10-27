@@ -10,7 +10,6 @@
 #include "CgEngineCore/Camera.hpp"
 #include "CgEngineCore/Rendering/Render_OpenGl.hpp"
 #include "CgEngineCore/Rendering/Texture2D.hpp"
-#include "CgEngineCore/Rendering/StencilBuffer.hpp"
 #include "CgEngineCore/Rendering/FrameBuffer.hpp"
 
 
@@ -140,32 +139,6 @@ void main()
     
 }
         )";
-    const char* f_framebuffer_shader = R"(#version 330 core
-out vec4 FragColor;
-
-in vec2 TexCoords;
-
-uniform sampler2D texture1;
-
-void main()
-{    
-    FragColor = texture(texture1, TexCoords);
-})";
-    const char* v_framebuffer_shader = R"(#version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec2 aTexCoords;
-
-out vec2 TexCoords;
-
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-
-void main()
-{
-    TexCoords = aTexCoords;    
-    gl_Position = projection * view * model * vec4(aPos, 1.0);
-})";
 
 
     const char* f_framebuffer_screenShader =  R"(#version 330 core
@@ -204,6 +177,7 @@ void main()
     std::unique_ptr<Texture2D> p_texture_miss;
     std::unique_ptr<Texture2D> p_texture_quad;
     std::unique_ptr<FrameBuffer> p_framebuffer;
+
     float scale[3] = { 1.f,1.f,1.f };
     float rotate = 0.f;
     float translate[3] = { 0.f,0.f,0.f };
@@ -314,10 +288,7 @@ void main()
         if (!p_shader_program->isCompiled()) {
             return false;
         }
-        p_framebuffer_shader = std::make_unique<ShaderProgram>( v_framebuffer_shader, f_framebuffer_shader);
-        if (!p_framebuffer_shader->isCompiled()) {
-            return false;
-        }
+        
         p_screen_shader = std::make_unique<ShaderProgram>(v_framebuffer_screenShader, f_framebuffer_screenShader);
         if (!p_screen_shader->isCompiled()) {
             return false;
@@ -326,10 +297,10 @@ void main()
         stbi_set_flip_vertically_on_load(true);
 
 
-        Model cube("C:/Users/Syndafloden/Documents/CgEngine/assets/cube.obj");
-        Model outcube("C:/Users/Syndafloden/Documents/CgEngine/assets/cube.obj");
+        Model cube("C:/Users/Syndafloden/Documents/CGEngine/assets/cube.obj");
+        Model outcube("C:/Users/Syndafloden/Documents/CGEngine/assets/cube.obj");
         //Model back("C:/Users/Syndafloden/Documents/CgEngine/assets/backpack/backpack.obj");
-        Model lightcube("C:/Users/Syndafloden/Documents/CgEngine/assets/cube.obj");
+        Model lightcube("C:/Users/Syndafloden/Documents/CGEngine/assets/cube.obj");
 
         BufferLayout buffer_layout_2vec3{
 
@@ -451,14 +422,7 @@ void main()
                 lightcube.meshes[i].Draw(p_light_shader->get_id());
             }
             p_framebuffer->unbind();
-            glDisable(GL_DEPTH_TEST);
-            Renderer_OpenGL::clear();
-
-
-
-
-            p_screen_shader->bind();
-        
+                
 
             
 
@@ -467,10 +431,13 @@ void main()
             //---------------------------------------//
             UIModule::on_ui_draw_begin();
             bool show = true;
-            UIModule::ShowExampleAppDockSpace(&show);
+            //UIModule::ShowExampleAppDockSpace(&show);
             
+
+            UIModule::on_imgui_render(p_framebuffer->m_texture_id);
+
             ImGui::Begin("Background Color Window");
-            ImGui::ShowDemoWindow();
+            //ImGui::ShowDemoWindow();
             ImGui::ColorEdit4("Background Color", m_background_color);
             ImGui::SliderFloat3("scale", scale, 0.f, 2.f);
             ImGui::SliderFloat("rotate", &rotate, 0.f, 360.f);

@@ -18,7 +18,9 @@ namespace CGEngine {
 		FrameBuffer(FrameBuffer&& frameBuffer) noexcept;
 
 		bool init();
+		
 
+		void resize(unsigned int new_width, unsigned int new_height);
 		void bind();
 		void unbind();
 		unsigned int m_texture_id;
