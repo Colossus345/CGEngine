@@ -1,5 +1,5 @@
 #include"ShaderProgram.hpp"
-
+#include"Render_OpenGl.hpp"
 #include"CgEngineCore/Log.hpp"
 
 #include<glad/glad.h>
@@ -87,10 +87,14 @@ namespace CGEngine {
 		glDeleteProgram(m_id);
 	}
 	void ShaderProgram::bind() const {
+		
+		Renderer_OpenGL::current_shader = m_id;
 		glUseProgram(m_id);
 	}
 	void ShaderProgram::unbind()
 	{
+		
+		Renderer_OpenGL::current_shader = 0;
 		glUseProgram(0);
 	}
 	void ShaderProgram::setMatrix4(const char* name, const glm::mat4& matrix) const

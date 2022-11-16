@@ -52,4 +52,8 @@ namespace CGEngine {
     {
         glBindTextureUnit(unit, m_id);
     }
+    void Texture2D::bind() const
+    {
+        glBindTexture(GL_TEXTURE_2D, m_id);
+    }
 }

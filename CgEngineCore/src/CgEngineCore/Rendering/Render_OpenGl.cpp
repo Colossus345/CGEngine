@@ -4,11 +4,13 @@
 #include<glfw/glfw3.h>
 
 #include"VertexArray.hpp"
+#include"Texture2D.hpp"
+#include "CgEngineCore/Rendering/Model.hpp"
 #include"CgEngineCore/Log.hpp"
 
 namespace CGEngine {
-
-
+	unsigned int  Renderer_OpenGL::current_shader;
+	
 
 	bool Renderer_OpenGL::init(GLFWwindow* pWindow)
 	{
@@ -30,11 +32,27 @@ namespace CGEngine {
 		vertexArray.bind();
 		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(vertexArray.get_indicies_count()), GL_UNSIGNED_INT, nullptr);
 	}
+	void draw_node( ModelNode& node) {
+		for (int i = 0; i < node.meshes.size(); i++) {
+			
+			node.meshes[i].Draw(Renderer_OpenGL::current_shader);
+		}
+		for (int i = 0; i < node.childrenNodes.size(); i++) {
+			draw_node(node.childrenNodes[i]);
+		}
+	}
+	void Renderer_OpenGL::draw_model(Model& model)
+	{
+		for (int i = 0; i < model.nodes.size(); i++) {
+			draw_node(model.nodes[i]);
+		}
+	}
+
 
 	void Renderer_OpenGL::draw_with_tex(const VertexArray& vertexArray, unsigned int texhan)
 	{
 		vertexArray.bind();
-		glBindTexture(GL_TEXTURE_2D, texhan);
+
 		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(vertexArray.get_indicies_count()), GL_UNSIGNED_INT, nullptr);
 
 	}

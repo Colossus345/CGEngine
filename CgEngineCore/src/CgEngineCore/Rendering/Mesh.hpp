@@ -15,59 +15,51 @@ namespace CGEngine {
 
     struct Vertex {
 
-        // Позиция
+        
         glm::vec3 Position;
 
-        // Нормаль
         glm::vec3 Normal;
 
-        // Текстурные координаты
         glm::vec2 TexCoords;
 
-        // Касательный вектор
-        glm::vec3 Tangent;
+       // glm::vec3 Tangent;
 
-        // Вектор бинормали (вектор, перпендикулярный касательному вектору и вектору нормали)
-        glm::vec3 Bitangent;
+        //glm::vec3 Bitangent;
     };
 
-    struct Texture {
-        unsigned int id;
-        std::string type;
-        std::string path;
-    };
+    class Texture2D;
 
     class Mesh {
     public:
-        // Данные меша
+        
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
-        std::vector<Texture> textures;
+        std::vector<std::shared_ptr<Texture2D>> textures;
         
         std::unique_ptr<VertexArray> VAO;
         std::unique_ptr<VertexBuffer> VBO;
         std::unique_ptr<IndexBuffer> EBO;
         
-        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
-        
+        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture2D>> textures);
+        Mesh& operator=(Mesh&& Mesh) noexcept;
+        Mesh(Mesh&& Mesh) noexcept;
 
         
         void Draw(unsigned int id);
+
+        void Test(unsigned char* data,int m_width, int m_height,int format);
           
           
 
     private:
-        // Данные для рендеринга 
+        
         BufferLayout vertlay
         { ShaderDataType::Float3,
           ShaderDataType::Float3,
-          ShaderDataType::Float2,
-          ShaderDataType::Float3,
-          ShaderDataType::Float3 
+          ShaderDataType::Float2
         };
-        BufferLayout texlay{ ShaderDataType::Float3 };
-
-        // Инициализируем все буферные объекты/массивы
+        
+        
         void setupMesh();
 
     };

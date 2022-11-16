@@ -12,14 +12,14 @@
 #include "CgEngineCore/Rendering/Texture2D.hpp"
 #include "CgEngineCore/Rendering/FrameBuffer.hpp"
 
-
 #include "CgEngineCore/Rendering/Model.hpp"
 #include "CgEngineCore/Modules/UIModule.hpp"
-
+#include "CgEngineCore/Utils/ResourseManager.hpp"
 
 #include"GLFW/glfw3.h"
 #include<iostream>
 #include"imgui.h"
+
 #include<glm/mat3x3.hpp>
 #include<glm/trigonometric.hpp>
 
@@ -110,7 +110,7 @@ in vec2 TexCoords;
 in vec3 Normal;  
 in vec3 FragPos;  
   
-uniform sampler2D texture_diffuse1;
+layout(binding = 0)  uniform sampler2D texture_diffuse1;
 
 uniform vec3 lightPos; 
 uniform vec3 viewPos; 
@@ -135,7 +135,7 @@ void main()
     vec3 specular = specularStrength * spec * lightColor;  
 
     vec3 result = (ambient + diffuse + specular) * objectColor;
-    FragColor = texture(texture_diffuse1, TexCoords)*vec4(result,1.);
+    FragColor = texture(texture_diffuse1, TexCoords);//*vec4(result,1.);
     
 }
         )";
@@ -188,6 +188,7 @@ void main()
 	Application::Application()
 	{
         LOG_INFO("Start app");
+
 	}
 	
 	Application::~Application()
@@ -198,7 +199,7 @@ void main()
 	{
 		m_pWindow = std::make_unique<Window>(title, window_width, window_height);
 
-		
+        glEnable(GL_TEXTURE_2D);
 		m_event_dispatcher.add_event_listener<EventMouseMoved>(
 			[](EventMouseMoved& event) {
 				//LOG_INFO("[Mouse moved] new pos {0}x{1}", event.x, event.y);
@@ -260,22 +261,8 @@ void main()
 			});
 
 
-        int width;
-        int height;
-        int format;
-        unsigned char* data = stbi_load("C:/Users/Syndafloden/Documents/CGEngine/assets/miss.png", &width, &height, &format, 0);
         
-        if (!data) {
-            LOG_CRIT("Cant load empty tex");
-            return-1;
-        }
         
-
-        p_texture_miss = std::make_unique<Texture2D>(data, static_cast<unsigned int>(width), static_cast<unsigned int> (height));
-        p_texture_miss->bind(0);
-
-        stbi_image_free(data);
-
        
 
         
@@ -294,14 +281,15 @@ void main()
             return false;
         }
 
-        stbi_set_flip_vertically_on_load(true);
+        
 
-
-        Model cube("C:/Users/Syndafloden/Documents/CGEngine/assets/cube.obj");
-        Model outcube("C:/Users/Syndafloden/Documents/CGEngine/assets/cube.obj");
+        auto cube = ResourseManager::loadOBJ("C:/Users/Syndafloden/Documents/CGEngine/res/cube.obj");
+        auto miss = ResourseManager::loadTexture("");
+        //Model cube("C:/Users/Syndafloden/Documents/CGEngine/res/cube.obj");
+        //Model outcube("C:/Users/Syndafloden/Documents/CGEngine/res/cube.obj");
         //Model back("C:/Users/Syndafloden/Documents/CgEngine/assets/backpack/backpack.obj");
-        Model lightcube("C:/Users/Syndafloden/Documents/CGEngine/assets/cube.obj");
-
+        //Model lightcube("C:/Users/Syndafloden/Documents/CGEngine/res/cube.obj");
+        ResourseManager::m_Textures;
         BufferLayout buffer_layout_2vec3{
 
             ShaderDataType::Float4,
@@ -325,13 +313,15 @@ void main()
         if (!p_framebuffer->init()){}
         static int current_frame = 0;
         glEnable(GL_DEPTH_TEST);
+        
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         glFrontFace(GL_CCW);
-
         
 
        
+        int width, height, nrComponents;
+        unsigned char* data = stbi_load("C:/Users/Syndafloden/Documents/CGEngine/res/miss.png", &width, &height, &nrComponents, 0);
 
 		while (!m_bCloseWindow) {
             
@@ -386,18 +376,16 @@ void main()
             p_shader_program->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
             p_shader_program->setVec3("lightPos", glm::vec3(1.2f));
             p_shader_program->setVec3("viewPos", camera.get_camera_position());
-
-            p_shader_program->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
             glm::mat4 model = glm::mat4(1.0f);
             model_matrix = glm::translate(model_matrix, glm::vec3(0.0f, 0.0f, 0.0f));
             model_matrix = glm::scale(model_matrix, glm::vec3(1.0f, 1.0f, 1.0f));	 
             p_shader_program->setMatrix4("model_matrix", model_matrix);
             
-           
-            
-            for (int i = 0; i < cube.meshes.size(); i++) {
-                cube.meshes[i].Draw(p_shader_program->get_id());
-            }
+            Renderer_OpenGL::draw_model(*cube);
+           // cube->nodes[0].childrenNodes[0].meshes[0].Test(data,width,height,nrComponents);
+            //for (int i = 0; i < cube.meshes.size(); i++) {
+            //    cube.meshes[i].Draw(p_shader_program->get_id());
+           // }
             
             
 
@@ -418,9 +406,10 @@ void main()
             model = glm::translate(model, glm::vec3(1.2f, 1.0f, 1.0f)); 
             model = glm::scale(model, glm::vec3(0.5f));	
             p_light_shader->setMatrix4("model", model);
-            for (int i = 0; i < cube.meshes.size(); i++) {
-                lightcube.meshes[i].Draw(p_light_shader->get_id());
-            }
+            Renderer_OpenGL::draw_model(*cube);
+           // for (int i = 0; i < cube.meshes.size(); i++) {
+             //   lightcube.meshes[i].Draw(p_light_shader->get_id());
+            //}
             p_framebuffer->unbind();
                 
 

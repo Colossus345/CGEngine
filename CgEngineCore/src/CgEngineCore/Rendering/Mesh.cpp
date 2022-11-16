@@ -2,11 +2,13 @@
 
 #include"Render_OpenGl.hpp"
 
+#include"Texture2D.hpp"
+
 #include <glad/glad.h>
 
 
 namespace CGEngine {
-    Mesh::Mesh(std::vector<Vertex> vert, std::vector<unsigned int> ind, std::vector<Texture> textures)
+    Mesh::Mesh(std::vector<Vertex> vert, std::vector<unsigned int> ind, std::vector<std::shared_ptr<Texture2D>> textures)
         
     {
         this->vertices = vert;
@@ -18,41 +20,54 @@ namespace CGEngine {
     
     
     }
+    Mesh& Mesh::operator=(Mesh&& Mesh) noexcept
+    {
+        VAO = std::move(Mesh.VAO);
+        VBO = std::move(Mesh.VBO);
+        EBO = std::move(Mesh.EBO);
+        vertices = Mesh.vertices;
+        indices  = Mesh.indices;
+        textures = Mesh.textures;
+        Mesh.vertices.clear();
+        Mesh.indices.clear();
+        Mesh.textures.clear();
+
+        return *this;
+    }
+    Mesh::Mesh(Mesh&& Mesh) noexcept
+    {
+        VAO = std::move(Mesh.VAO);
+        VBO = std::move(Mesh.VBO);
+        EBO = std::move(Mesh.EBO);
+        vertices = Mesh.vertices;
+        indices  = Mesh.indices;
+        textures = Mesh.textures;
+        Mesh.vertices.clear();
+        Mesh.indices.clear();
+        Mesh.textures.clear();
+
+    }
     void Mesh::Draw(unsigned int id)
     {
-       
+
         unsigned int diffuseNr = 1;
         unsigned int specularNr = 1;
         unsigned int normalNr = 1;
         unsigned int heightNr = 1;
 
-        for (unsigned int i = 0; i < textures.size(); i++)
-        {
-            glActiveTexture(GL_TEXTURE0 + i); // перед связыванием активируем нужный текстурный юнит
+        for (int i = 0; i < textures.size(); i++) {
 
-            // Получаем номер текстуры (номер N в diffuse_textureN)
-            std::string number;
-            std::string name = textures[i].type;
-            if (name == "texture_diffuse")
-                number = std::to_string(diffuseNr++);
-            else if (name == "texture_specular")
-                number = std::to_string(specularNr++); // конвертируем unsigned int в строку
-            else if (name == "texture_normal")
-                number = std::to_string(normalNr++); // конвертируем unsigned int в строку
-            else if (name == "texture_height")
-                number = std::to_string(heightNr++); // конвертируем unsigned int в строку
-
-            // Теперь устанавливаем сэмплер на нужный текстурный юнит
-            glUniform1i(glGetUniformLocation(id, (name + number).c_str()), i);
-            
-            glBindTexture(GL_TEXTURE_2D, textures[i].id);
+            textures[i]->bind(i);
         }
-        
-
         Renderer_OpenGL::draw(*VAO);
-
-        glActiveTexture(GL_TEXTURE0);
     }
+
+    void Mesh::Test(unsigned char* data, int m_width, int m_height,int format)
+    {
+       
+        Renderer_OpenGL::draw(*VAO);
+    }
+    
     void Mesh::setupMesh()
 	{
         VAO = std::make_unique<VertexArray>();
@@ -62,6 +77,7 @@ namespace CGEngine {
         VBO->init(vertices.data(), vertices.size() * sizeof(Vertex), vertlay);
         EBO->init(indices.data(),indices.size());
 
+        
         VAO->add_vertex_buffer(*VBO);
         VAO->set_index_buffer(*EBO);
         VAO->unbind();

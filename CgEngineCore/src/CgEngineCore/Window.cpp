@@ -21,7 +21,7 @@ namespace CGEngine {
     Window::Window(std::string title, const unsigned int width, const unsigned int height) :m_data({ std::move(title) ,width, height })
 	{
 		int result = init();
-
+       
         
 	}
 
@@ -59,7 +59,7 @@ namespace CGEngine {
         
 
         /* Initialize the library */
-
+       
 
         glfwSetErrorCallback([](int error_code, const char* description) {
             LOG_ERROR("GLFW ERROR: {0}", description);
@@ -70,7 +70,7 @@ namespace CGEngine {
             LOG_CRIT("GLFW failed to init");
             return -1;
         }
-                       
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
         /* Create a windowed mode window and its OpenGL context */
         m_pWindow = glfwCreateWindow(m_data.width, m_data.height, m_data.title.c_str(), NULL, NULL);

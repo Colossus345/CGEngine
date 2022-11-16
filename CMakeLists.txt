@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 set(PROJECT_NAME CgEngine)
+set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 project(${PROJECT_NAME})
 
