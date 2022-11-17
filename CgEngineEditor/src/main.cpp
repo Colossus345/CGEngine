@@ -4,6 +4,7 @@
 #include"CgEngineCore/Application.hpp"
 #include"CgEngineCore/Input.hpp"
 
+
 #include<imgui/imgui.h>
 
 class CGEngineEditor : public CGEngine::Application {
@@ -126,14 +127,15 @@ class CGEngineEditor : public CGEngine::Application {
 		ImGui::End();
 	}
 
-	int frame = 0;
+	
+    int frame = 0;
  };
 
-int main() {
+int main(int argc,char** argv) {
 
 	auto myApp = std::make_unique<CGEngineEditor>();
-
-	int returnCode = myApp->start(1024, 768, "Myapp");
+    
+	int returnCode = myApp->start(1024, 768, "Myapp", argv[0]);
 
 	return 0;
 }

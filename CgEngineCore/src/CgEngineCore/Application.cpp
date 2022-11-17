@@ -16,6 +16,7 @@
 #include "CgEngineCore/Modules/UIModule.hpp"
 #include "CgEngineCore/Utils/ResourseManager.hpp"
 
+
 #include"GLFW/glfw3.h"
 #include<iostream>
 #include"imgui.h"
@@ -28,11 +29,16 @@
 #include<filesystem>
 
 namespace  CGEngine{
-    GLfloat positions_colors[] = {
-       0.0f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,
-       0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 1.0f,
-      -0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 1.0f
 
+    void test(std::shared_ptr<VertexArray> a) {
+
+    }
+
+    GLfloat positions_colors_coords[] = {
+        0.0f, -0.5f, -0.5f,   1.0f, 1.0f, 0.0f,   2.f, -1.f,
+        0.0f,  0.5f, -0.5f,   0.0f, 1.0f, 1.0f,  -1.f, -1.f,
+        0.0f, -0.5f,  0.5f,   1.0f, 0.0f, 1.0f,   2.f,  2.f,
+        0.0f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,  -1.f,  2.f
     };
 
     float quadVertices[] = { 
@@ -48,133 +54,15 @@ namespace  CGEngine{
     GLuint indicies[] = {
         0,1,2,3,2,1
     };
-
-    const char* vertex_shader =
-        R"(#version 440 
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
-layout (location = 2) in vec2 aTexCoords;
-
-out vec2 TexCoords;
-out vec3 FragPos;
-out vec3 Normal;
-
-uniform mat4 model_matrix;
-uniform mat4 view;
-uniform mat4 projection;
-
-void main()
-{
-    TexCoords = aTexCoords;    
+   
     
-    FragPos = vec3(model_matrix*vec4(aPos,1.0f));
-    Normal = mat3(transpose(inverse(model_matrix))) * aNormal;  
-    gl_Position = projection * view * model_matrix * vec4(aPos, 1.0);
-}
-        )";
-    const char* lvs =
-        R"(#version 440 
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
-layout (location = 2) in vec2 aTexCoords;
 
 
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-
-void main()
-{
-    
-    gl_Position = projection * view * model * vec4(aPos, 1.0);
-}
-        )";
-    const char* fls =
-        R"(#version 440
-out vec4 FragColor;
-
-uniform vec3 objectColor;
-uniform vec3 lightColor;
-
-void main()
-{    
-    FragColor = vec4(1.f);
-}
-        )";
-    const char* fragment_shader =
-        R"(#version 440
-out vec4 FragColor;
-
-in vec2 TexCoords;
-in vec3 Normal;  
-in vec3 FragPos;  
-  
-layout(binding = 0)  uniform sampler2D texture_diffuse1;
-
-uniform vec3 lightPos; 
-uniform vec3 viewPos; 
-uniform vec3 lightColor;
-uniform vec3 objectColor;
-
-void main()
-{    
-    float ambientStrength = 0.1;
-    vec3 ambient = ambientStrength * lightColor;
-
-    vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(lightPos - FragPos);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * lightColor;
-
-
-    float specularStrength = 0.5;
-    vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);  
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    vec3 specular = specularStrength * spec * lightColor;  
-
-    vec3 result = (ambient + diffuse + specular) * objectColor;
-    FragColor = texture(texture_diffuse1, TexCoords);//*vec4(result,1.);
-    
-}
-        )";
-
-
-    const char* f_framebuffer_screenShader =  R"(#version 330 core
-out vec4 FragColor;
-
-in vec2 TexCoords;
-
-uniform sampler2D screenTexture;
-
-void main()
-{
-    vec3 col = texture(screenTexture, TexCoords).rgb;
-    FragColor = vec4(col, 1.0);
-} )";
-    const char* v_framebuffer_screenShader =  R"(#version 330 core
-layout (location = 0) in vec2 aPos;
-layout (location = 1) in vec2 aTexCoords;
-
-out vec2 TexCoords;
-
-void main()
-{
-    TexCoords = aTexCoords;
-    gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
-})";
-
-
-
-    std::unique_ptr<ShaderProgram> p_shader_program;
-    std::unique_ptr<ShaderProgram> p_light_shader;
-    std::unique_ptr<ShaderProgram> p_framebuffer_shader;
     std::unique_ptr<ShaderProgram> p_screen_shader;
     std::unique_ptr<VertexBuffer> p_positions_colors_vbo;
     std::unique_ptr<VertexArray> p_vao;
     std::unique_ptr<IndexBuffer> p_index_buf;
-    std::unique_ptr<Texture2D> p_texture_miss;
     std::unique_ptr<Texture2D> p_texture_quad;
     std::unique_ptr<FrameBuffer> p_framebuffer;
 
@@ -187,6 +75,7 @@ void main()
     float lastFrame = 0.0f;
 	Application::Application()
 	{
+        
         LOG_INFO("Start app");
 
 	}
@@ -195,10 +84,14 @@ void main()
 	{
 		LOG_INFO("Close app");
 	}
-	int Application::start(unsigned int window_width, unsigned int window_height, const char* title)
+	int Application::start(unsigned int window_width, unsigned int window_height, const char* title,char* exepath)
 	{
 		m_pWindow = std::make_unique<Window>(title, window_width, window_height);
 
+
+        ResourseManager::getExeDir(std::string(exepath));
+        
+        
         glEnable(GL_TEXTURE_2D);
 		m_event_dispatcher.add_event_listener<EventMouseMoved>(
 			[](EventMouseMoved& event) {
@@ -267,23 +160,12 @@ void main()
 
         
         ///////////////////////////////////////////////////////////////////
-        p_shader_program = std::make_unique<ShaderProgram>(vertex_shader, fragment_shader);
-        if (!p_shader_program->isCompiled()) {
-            return false;
-        }
-        p_light_shader = std::make_unique<ShaderProgram>(lvs, fls);
-        if (!p_shader_program->isCompiled()) {
-            return false;
-        }
-        
-        p_screen_shader = std::make_unique<ShaderProgram>(v_framebuffer_screenShader, f_framebuffer_screenShader);
-        if (!p_screen_shader->isCompiled()) {
-            return false;
-        }
+
 
         
 
-        auto cube = ResourseManager::loadOBJ("C:/Users/Syndafloden/Documents/CGEngine/res/cube.obj");
+        auto spider = ResourseManager::loadOBJ("res/backpack/backpack.obj");
+        auto cat = ResourseManager::loadOBJ("res/cat/cat.obj");
         auto miss = ResourseManager::loadTexture("");
         //Model cube("C:/Users/Syndafloden/Documents/CGEngine/res/cube.obj");
         //Model outcube("C:/Users/Syndafloden/Documents/CGEngine/res/cube.obj");
@@ -292,13 +174,14 @@ void main()
         ResourseManager::m_Textures;
         BufferLayout buffer_layout_2vec3{
 
-            ShaderDataType::Float4,
-            ShaderDataType::Float4
+            ShaderDataType::Float3,
+            ShaderDataType::Float3
+            ,ShaderDataType::Float2
         };
         p_vao = std::make_unique<VertexArray>();
         p_positions_colors_vbo = std::make_unique<VertexBuffer>();
 
-        p_positions_colors_vbo->init(quadVertices, sizeof(quadVertices), buffer_layout_2vec3);
+        p_positions_colors_vbo->init(positions_colors_coords, sizeof(positions_colors_coords), buffer_layout_2vec3);
         
         p_index_buf = std::make_unique<IndexBuffer>();
         p_index_buf->init(indicies, sizeof(indicies) / sizeof(GLuint));
@@ -317,77 +200,81 @@ void main()
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         glFrontFace(GL_CCW);
-        
+
 
        
-        int width, height, nrComponents;
-        unsigned char* data = stbi_load("C:/Users/Syndafloden/Documents/CGEngine/res/miss.png", &width, &height, &nrComponents, 0);
+        ResourseManager::loadTexture("res/miss.png");
 
-		while (!m_bCloseWindow) {
-            
-           
+        auto missing = ResourseManager::getTexture("res/miss.png");
+
+        auto p_shader_program = ResourseManager::loadShader("default_shader","res/shaders/MainVertextShader.vert", "res/shaders/MainFragmentShader.frag");
+
+        auto p_light_shader = ResourseManager::loadShader("light_shader", "res/shaders/LightVertextShader.vert", "res/shaders/LightFragmentShader.frag");
+
+        auto tex_shader = ResourseManager::loadShader("basic", "res/shaders/BasicTex.vert", "res/shaders/BasicTex.frag");
+
+        while (!m_bCloseWindow) {
+
+            //
             float currentFrame = glfwGetTime();
             deltaTime = currentFrame - lastFrame;
             lastFrame = currentFrame;
-            //LOG_INFO("FPS:{0}",1 / deltaTime);
+
             float fps = 1 / deltaTime;
-            std::string title = "FPS:" +std::to_string(fps) ;
-            glfwSetWindowTitle(m_pWindow->m_pWindow,(title).c_str());
+            std::string title = "FPS:" + std::to_string(fps);
+            glfwSetWindowTitle(m_pWindow->m_pWindow, (title).c_str());
 
 
             p_framebuffer->bind();
             glEnable(GL_DEPTH_TEST);
             Renderer_OpenGL::set_clear_color(m_background_color[0], m_background_color[1], m_background_color[2], m_background_color[3]);
-            Renderer_OpenGL::clear(1,1);
-            
-           
+            Renderer_OpenGL::clear(1, 1);
 
-            
 
             p_shader_program->bind();
 
-            glm::mat4 scale_matrix(
-                scale[0], 0, 0, 0,
+            glm::mat4 scale_matrix(scale[0], 0, 0, 0,
                 0, scale[1], 0, 0,
                 0, 0, scale[2], 0,
                 0, 0, 0, 1);
-            float rotate_in_rad = glm::radians(rotate);
-            glm::mat4 rotate_matrix(
-                cos(rotate_in_rad), sin(rotate_in_rad), 0, 0,
-                -sin(rotate_in_rad), cos(rotate_in_rad), 0, 0,
+            float rotate_in_radians = glm::radians(rotate);
+            glm::mat4 rotate_matrix(cos(rotate_in_radians), sin(rotate_in_radians), 0, 0,
+                -sin(rotate_in_radians), cos(rotate_in_radians), 0, 0,
                 0, 0, 1, 0,
                 0, 0, 0, 1);
-
             glm::mat4 translate_matrix(1, 0, 0, 0,
                 0, 1, 0, 0,
                 0, 0, 1, 0,
                 translate[0], translate[1], translate[2], 1);
 
             glm::mat4 model_matrix = translate_matrix * rotate_matrix * scale_matrix;
-
-            p_shader_program->setMatrix4("model_matrix", model_matrix);
             
+            
+            
+            p_shader_program->setMatrix4("model_matrix", model_matrix);
             camera.set_projection_mode(perspective_camera ? Camera::ProjectionMode::Perspective : Camera::ProjectionMode::Orthographic);
-
             p_shader_program->setMatrix4("view", camera.get_view_matrix());
             p_shader_program->setMatrix4("projection", camera.get_projection_matrix());
-
+            
+            
             p_shader_program->setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
             p_shader_program->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
             p_shader_program->setVec3("lightPos", glm::vec3(1.2f));
             p_shader_program->setVec3("viewPos", camera.get_camera_position());
+            
+            
+            
             glm::mat4 model = glm::mat4(1.0f);
             model_matrix = glm::translate(model_matrix, glm::vec3(0.0f, 0.0f, 0.0f));
-            model_matrix = glm::scale(model_matrix, glm::vec3(1.0f, 1.0f, 1.0f));	 
+            model_matrix = glm::scale(model_matrix, glm::vec3(1.f));
+            model_matrix = glm::rotate(model_matrix, glm::radians(90.f),glm::vec3(1,1,1));
             p_shader_program->setMatrix4("model_matrix", model_matrix);
-            
-            Renderer_OpenGL::draw_model(*cube);
-           // cube->nodes[0].childrenNodes[0].meshes[0].Test(data,width,height,nrComponents);
-            //for (int i = 0; i < cube.meshes.size(); i++) {
-            //    cube.meshes[i].Draw(p_shader_program->get_id());
-           // }
-            
-            
+
+
+            Renderer_OpenGL::draw_model(*spider);
+
+           
+        
 
            
 
@@ -406,10 +293,8 @@ void main()
             model = glm::translate(model, glm::vec3(1.2f, 1.0f, 1.0f)); 
             model = glm::scale(model, glm::vec3(0.5f));	
             p_light_shader->setMatrix4("model", model);
-            Renderer_OpenGL::draw_model(*cube);
-           // for (int i = 0; i < cube.meshes.size(); i++) {
-             //   lightcube.meshes[i].Draw(p_light_shader->get_id());
-            //}
+            //Renderer_OpenGL::draw_model(*cube);
+        
             p_framebuffer->unbind();
                 
 
@@ -426,11 +311,10 @@ void main()
             UIModule::on_imgui_render(p_framebuffer->m_texture_id);
 
             ImGui::Begin("Background Color Window");
-            //ImGui::ShowDemoWindow();
             ImGui::ColorEdit4("Background Color", m_background_color);
             ImGui::SliderFloat3("scale", scale, 0.f, 2.f);
             ImGui::SliderFloat("rotate", &rotate, 0.f, 360.f);
-            ImGui::SliderFloat3("translate", translate, -1.f, 1.f);
+            ImGui::SliderFloat3("translate", translate, -10.f, 10.f);
             ImGui::SliderFloat3("camera position", camera_position, -10.f, 10.f);
             ImGui::SliderFloat3("camera rotation", camera_rotation, 0, 360.f);
             ImGui::Checkbox("Perspective camera", &perspective_camera);

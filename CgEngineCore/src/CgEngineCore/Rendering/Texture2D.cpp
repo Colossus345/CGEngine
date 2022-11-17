@@ -16,10 +16,17 @@ namespace CGEngine {
         glCreateTextures(GL_TEXTURE_2D, 1, &m_id);
         const GLsizei mip_levels = static_cast<GLsizei>(std::log2(std::max(m_width, m_height))) + 1;
         glTextureStorage2D(m_id, mip_levels, GL_RGB8, width, height);
-        if (format < 4) {
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 4 - format);
-        }
-        glTextureSubImage2D(m_id, 0, 0, 0, width, height, format,GL_UNSIGNED_BYTE, data);
+        
+        GLenum fr;
+        if (format == 1)
+            fr = GL_RED;
+        else if (format == 3)
+            fr = GL_RGB;
+        else if (format == 4)
+            fr = GL_RGBA;
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 4-format);
+        glTextureSubImage2D(m_id, 0, 0, 0, width, height, fr,GL_UNSIGNED_BYTE, data);
+        //glTexImage2D()
 
         glTextureParameteri(m_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTextureParameteri(m_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
