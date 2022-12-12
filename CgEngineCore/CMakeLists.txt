@@ -22,6 +22,9 @@ set(ENGINE_PRIVATE_INCLUDES
 	src/CgEngineCore/Rendering/Mesh.hpp
 	src/CgEngineCore/Rendering/FrameBuffer.hpp
 	src/CgEngineCore/Rendering/stb_image.h
+	src/CgEngineCore/Rendering/Bone.hpp
+	src/CgEngineCore/Rendering/Animation.hpp
+	src/CgEngineCore/Rendering/Animator.hpp
 	src/CgEngineCore/Modules/UIModule.hpp
 	src/CgEngineCore/Utils/ResourseManager.hpp
 	src/CgEngineCore/Input.cpp
@@ -40,6 +43,9 @@ set(ENGINE_PRIVATE_SOURCES
 	src/CgEngineCore/Rendering/Mesh.cpp
 	src/CgEngineCore/Rendering/stb_image.cpp
 	src/CgEngineCore/Rendering/FrameBuffer.cpp
+	src/CgEngineCore/Rendering/Bone.cpp
+	src/CgEngineCore/Rendering/Animation.cpp
+	src/CgEngineCore/Rendering/Animator.cpp
 	src/CgEngineCore/Modules/UIModule.cpp
 	src/CgEngineCore/Utils/ResourseManager.cpp
 	src/CgEngineCore/Camera.cpp)

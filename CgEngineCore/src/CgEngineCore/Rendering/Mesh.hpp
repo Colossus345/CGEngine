@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include "CgEngineCore/Log.hpp"
 #include "VertexArray.hpp"
+#include "Bone.hpp"
 
 #include<memory>
 
@@ -22,9 +23,9 @@ namespace CGEngine {
 
         glm::vec2 TexCoords;
 
-       // glm::vec3 Tangent;
+        int BoneID[4];
 
-        //glm::vec3 Bitangent;
+        int weights[4];
     };
 
     class Texture2D;
@@ -39,8 +40,12 @@ namespace CGEngine {
         std::unique_ptr<VertexArray> VAO;
         std::unique_ptr<VertexBuffer> VBO;
         std::unique_ptr<IndexBuffer> EBO;
+
+        std::unique_ptr<Bone> m_Skeleton;
+
         
         Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture2D>> textures);
+        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture2D>> textures, std::unique_ptr<Bone> skeleton);
         Mesh& operator=(Mesh&& Mesh) noexcept;
         Mesh(Mesh&& Mesh) noexcept;
 
@@ -48,6 +53,12 @@ namespace CGEngine {
         void Draw(unsigned int id);
 
         void Test(unsigned char* data,int m_width, int m_height,int format);
+
+       //std::unique_ptr<Bone> getSkeleton() const;
+
+        void add_skeleton(Bone skeleton);
+
+
           
           
 
@@ -56,7 +67,9 @@ namespace CGEngine {
         BufferLayout vertlay
         { ShaderDataType::Float3,
           ShaderDataType::Float3,
-          ShaderDataType::Float2
+          ShaderDataType::Float2,
+          ShaderDataType::Int4,
+          ShaderDataType::Int4
         };
         
         

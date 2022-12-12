@@ -77,7 +77,7 @@ namespace  CGEngine{
 	{
         
         LOG_INFO("Start app");
-
+        //stbi_set_flip_vertically_on_load(true);
 	}
 	
 	Application::~Application()
@@ -164,31 +164,10 @@ namespace  CGEngine{
 
         
 
-        auto spider = ResourseManager::loadOBJ("res/backpack/backpack.obj");
-        auto cat = ResourseManager::loadOBJ("res/cat/cat.obj");
+        auto spider = ResourseManager::loadOBJ("res/hip/hip.dae");
+        //auto cat = ResourseManager::loadOBJ("res/cat/cat.obj");
         auto miss = ResourseManager::loadTexture("");
-        //Model cube("C:/Users/Syndafloden/Documents/CGEngine/res/cube.obj");
-        //Model outcube("C:/Users/Syndafloden/Documents/CGEngine/res/cube.obj");
-        //Model back("C:/Users/Syndafloden/Documents/CgEngine/assets/backpack/backpack.obj");
-        //Model lightcube("C:/Users/Syndafloden/Documents/CGEngine/res/cube.obj");
-        ResourseManager::m_Textures;
-        BufferLayout buffer_layout_2vec3{
-
-            ShaderDataType::Float3,
-            ShaderDataType::Float3
-            ,ShaderDataType::Float2
-        };
-        p_vao = std::make_unique<VertexArray>();
-        p_positions_colors_vbo = std::make_unique<VertexBuffer>();
-
-        p_positions_colors_vbo->init(positions_colors_coords, sizeof(positions_colors_coords), buffer_layout_2vec3);
         
-        p_index_buf = std::make_unique<IndexBuffer>();
-        p_index_buf->init(indicies, sizeof(indicies) / sizeof(GLuint));
-        
-        p_vao->add_vertex_buffer(*p_positions_colors_vbo);
-        p_vao->set_index_buffer(*p_index_buf);
-		
 
 
         p_framebuffer = std::make_unique<FrameBuffer>(m_pWindow->get_width(), m_pWindow->get_height());
@@ -201,7 +180,7 @@ namespace  CGEngine{
         glCullFace(GL_BACK);
         glFrontFace(GL_CCW);
 
-
+        
        
         ResourseManager::loadTexture("res/miss.png");
 
@@ -250,9 +229,11 @@ namespace  CGEngine{
             glm::mat4 model_matrix = translate_matrix * rotate_matrix * scale_matrix;
             
             
-            
+            model_matrix = glm::scale(model_matrix, glm::vec3(0.01f));
             p_shader_program->setMatrix4("model_matrix", model_matrix);
+
             camera.set_projection_mode(perspective_camera ? Camera::ProjectionMode::Perspective : Camera::ProjectionMode::Orthographic);
+            Renderer_OpenGL::draw_model(*spider);
             p_shader_program->setMatrix4("view", camera.get_view_matrix());
             p_shader_program->setMatrix4("projection", camera.get_projection_matrix());
             
@@ -271,7 +252,9 @@ namespace  CGEngine{
             p_shader_program->setMatrix4("model_matrix", model_matrix);
 
 
-            Renderer_OpenGL::draw_model(*spider);
+            
+
+            
 
            
         

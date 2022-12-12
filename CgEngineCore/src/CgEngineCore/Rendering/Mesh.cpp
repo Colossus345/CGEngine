@@ -18,7 +18,16 @@ namespace CGEngine {
         
         setupMesh();
     
-    
+    }
+    Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture2D>> textures, std::unique_ptr<Bone> skeleton)
+    {
+        this->vertices = vertices;
+        this->indices = indices;
+        this->textures = textures;
+
+        this->m_Skeleton = std::move(skeleton);
+
+        setupMesh();
     }
     Mesh& Mesh::operator=(Mesh&& Mesh) noexcept
     {
@@ -42,9 +51,11 @@ namespace CGEngine {
         vertices = Mesh.vertices;
         indices  = Mesh.indices;
         textures = Mesh.textures;
+        m_Skeleton = std::move(Mesh.m_Skeleton);
         Mesh.vertices.clear();
         Mesh.indices.clear();
         Mesh.textures.clear();
+        Mesh.m_Skeleton.release();
 
     }
     void Mesh::Draw(unsigned int id)
@@ -61,6 +72,13 @@ namespace CGEngine {
        
         Renderer_OpenGL::draw(*VAO);
     }
+
+    void Mesh::add_skeleton(Bone skeleton)
+    {
+        m_Skeleton = std::make_unique<Bone>(skeleton);
+    }
+
+  
     
     void Mesh::setupMesh()
 	{

@@ -10,10 +10,6 @@
 #include <assimp/postprocess.h>
 
 
-//struct aiNode;
-//struct aiScene;
-//struct aiMesh;
-//struct aiMaterial;
 
 
 
@@ -23,11 +19,14 @@ namespace CGEngine {
 	class Texture2D;
 	class Mesh;
 	class ShaderProgram;
+	class Bone;
 	struct ModelNode;
 	struct Texture;
-
+	struct Vertex;
+	
 
 	class ResourseManager {
+		
 
 	public:
 		ResourseManager() = delete;
@@ -54,6 +53,10 @@ namespace CGEngine {
 		static std::shared_ptr<Texture2D> modelLoadTexture(const std::string& filename);
 		static void getExeDir(std::string& path);
 
+		static Bone* ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene);
+		static void SetVertexBoneData(Vertex& vertex, int boneID, float weight);
+
+
 
 		typedef std::map<const std::string, std::shared_ptr<ShaderProgram>> ShaderMap;
 		static ShaderMap m_Shaders;
@@ -63,7 +66,7 @@ namespace CGEngine {
 		static TextureMap m_Textures;
 
 		static std::string m_path;
-		//static std::string directory;
+		
 	};
 
 }
