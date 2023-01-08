@@ -1,7 +1,7 @@
 #include "Mesh.hpp"
 
 #include"Render_OpenGl.hpp"
-
+#include"ShaderProgram.hpp"
 #include"Texture2D.hpp"
 
 #include <glad/glad.h>
@@ -19,14 +19,18 @@ namespace CGEngine {
         setupMesh();
     
     }
-    Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture2D>> textures, std::unique_ptr<Bone> skeleton)
+    Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture2D>> textures, Bone* skeleton)
     {
         this->vertices = vertices;
         this->indices = indices;
         this->textures = textures;
 
         this->m_Skeleton = std::move(skeleton);
+        
+        m_Skeleton->calcInverseBindTransform(glm::mat4(1.f));
 
+        anima = std::make_unique<Animator>(skeleton);
+        
         setupMesh();
     }
     Mesh& Mesh::operator=(Mesh&& Mesh) noexcept
@@ -34,12 +38,14 @@ namespace CGEngine {
         VAO = std::move(Mesh.VAO);
         VBO = std::move(Mesh.VBO);
         EBO = std::move(Mesh.EBO);
+        anima = std::move(Mesh.anima);
         vertices = Mesh.vertices;
         indices  = Mesh.indices;
         textures = Mesh.textures;
         Mesh.vertices.clear();
         Mesh.indices.clear();
         Mesh.textures.clear();
+        Mesh.anima.release();
 
         return *this;
     }
@@ -48,6 +54,7 @@ namespace CGEngine {
         VAO = std::move(Mesh.VAO);
         VBO = std::move(Mesh.VBO);
         EBO = std::move(Mesh.EBO);
+        anima = std::move(Mesh.anima);
         vertices = Mesh.vertices;
         indices  = Mesh.indices;
         textures = Mesh.textures;
@@ -55,11 +62,16 @@ namespace CGEngine {
         Mesh.vertices.clear();
         Mesh.indices.clear();
         Mesh.textures.clear();
-        Mesh.m_Skeleton.release();
+        Mesh.anima.release();
+        
 
     }
-    void Mesh::Draw(unsigned int id)
-    {
+    void Mesh::Draw(unsigned int id, ShaderProgram& shader, double& deltaTime)
+    {   
+        //Animate(shader, "mixamorig_Hips", deltaTime*1000);
+
+        
+
         for (int i = 0; i < textures.size(); i++) {
             textures[i]->bind(i);
         }
@@ -73,9 +85,25 @@ namespace CGEngine {
         Renderer_OpenGL::draw(*VAO);
     }
 
-    void Mesh::add_skeleton(Bone skeleton)
+    void Mesh::Animate(ShaderProgram& shader,std::string animation,double deltaTime)
     {
-        m_Skeleton = std::make_unique<Bone>(skeleton);
+        anima->play("mixamorig_Hips");
+        anima->update(deltaTime);
+        auto transforms = anima->getTransforms();
+        for (int i = 0; i < transforms.size(); i++)
+        {
+            std::string a = "finalBonesMatrices[" + std::to_string(i) + "]";
+            shader.setMatrix4(a.c_str(), transforms[i]);
+
+        }
+        
+
+
+    }
+
+    void Mesh::add_skeleton(Bone* skeleton)
+    {
+        m_Skeleton = skeleton;
     }
 
   

@@ -88,11 +88,12 @@ namespace CGEngine {
 	}
 	void ShaderProgram::bind() const {
 		Renderer_OpenGL::current_shader = m_id;
-
+		
 		glUseProgram(m_id);
 	}
 	void ShaderProgram::unbind()
 	{
+		
 		
 		Renderer_OpenGL::current_shader = 0;
 		glUseProgram(0);

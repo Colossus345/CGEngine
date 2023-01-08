@@ -7,6 +7,7 @@
 #include"Texture2D.hpp"
 #include "CgEngineCore/Rendering/Model.hpp"
 #include"CgEngineCore/Log.hpp"
+#include "ShaderProgram.hpp"
 
 namespace CGEngine {
 	unsigned int  Renderer_OpenGL::current_shader;
@@ -30,21 +31,21 @@ namespace CGEngine {
 	void Renderer_OpenGL::draw(const VertexArray& vertexArray)
 	{
 		vertexArray.bind();
-		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(vertexArray.get_indicies_count()), GL_UNSIGNED_INT, nullptr);
+		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(vertexArray.get_indicies_count()), GL_UNSIGNED_INT, 0);
 	}
-	void draw_node( ModelNode& node) {
+	void draw_node(ModelNode& node, ShaderProgram& shader, double& deltaTime) {
 		for (int i = 0; i < node.meshes.size(); i++) {
 			
-			node.meshes[i].Draw(Renderer_OpenGL::current_shader);
+			node.meshes[i].Draw(Renderer_OpenGL::current_shader, shader, deltaTime);
 		}
 		for (int i = 0; i < node.childrenNodes.size(); i++) {
-			draw_node(node.childrenNodes[i]);
+			draw_node(node.childrenNodes[i],shader ,deltaTime );
 		}
 	}
-	void Renderer_OpenGL::draw_model(Model& model)
+	void Renderer_OpenGL::draw_model(Model& model,ShaderProgram& shader,double& deltaTime)
 	{
 		for (int i = 0; i < model.nodes.size(); i++) {
-			draw_node(model.nodes[i]);
+			draw_node(model.nodes[i], shader, deltaTime);
 		}
 	}
 

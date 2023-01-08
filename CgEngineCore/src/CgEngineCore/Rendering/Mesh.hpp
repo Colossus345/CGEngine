@@ -5,9 +5,10 @@
 #include "CgEngineCore/Log.hpp"
 #include "VertexArray.hpp"
 #include "Bone.hpp"
+#include "Animator.hpp"
 
 #include<memory>
-
+#define max_infl 4
 
 namespace CGEngine {
 
@@ -23,12 +24,16 @@ namespace CGEngine {
 
         glm::vec2 TexCoords;
 
-        int BoneID[4];
+        float BoneID[max_infl];
 
-        int weights[4];
+        float weights[max_infl];
+      
     };
+    
 
     class Texture2D;
+
+    class ShaderProgram;
 
     class Mesh {
     public:
@@ -41,25 +46,29 @@ namespace CGEngine {
         std::unique_ptr<VertexBuffer> VBO;
         std::unique_ptr<IndexBuffer> EBO;
 
-        std::unique_ptr<Bone> m_Skeleton;
+        Bone* m_Skeleton;
 
+        std::unique_ptr<Animator> anima;
+        
+        
         
         Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture2D>> textures);
-        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture2D>> textures, std::unique_ptr<Bone> skeleton);
+        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture2D>> textures, Bone* skeleton);
         Mesh& operator=(Mesh&& Mesh) noexcept;
         Mesh(Mesh&& Mesh) noexcept;
 
         
-        void Draw(unsigned int id);
+        void Draw(unsigned int id, ShaderProgram& shader, double& deltaTime);
 
         void Test(unsigned char* data,int m_width, int m_height,int format);
 
+        void Animate(ShaderProgram& shader, std::string animation, double deltaTime);
+
        //std::unique_ptr<Bone> getSkeleton() const;
 
-        void add_skeleton(Bone skeleton);
+        void add_skeleton(Bone* skeleton);
 
-
-          
+        
           
 
     private:
@@ -69,7 +78,7 @@ namespace CGEngine {
           ShaderDataType::Float3,
           ShaderDataType::Float2,
           ShaderDataType::Int4,
-          ShaderDataType::Int4
+          ShaderDataType::Float4
         };
         
         

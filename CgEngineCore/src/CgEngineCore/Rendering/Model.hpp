@@ -40,6 +40,7 @@ namespace CGEngine {
         Model(std::vector<ModelNode> nodes);
         Model(ModelNode node);
         
+       
         
     };
 

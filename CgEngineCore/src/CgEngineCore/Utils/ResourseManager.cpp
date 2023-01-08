@@ -44,7 +44,7 @@ namespace CGEngine {
 
         directory = filename.substr(0, filename.find_last_of('/'));
 
-        parse_node(scene->mRootNode);
+       //parse_node(scene->mRootNode);
 
         std::shared_ptr<Model>& p_model = m_Models.emplace(filename, std::make_unique<Model>(processNode(scene->mRootNode, scene))).first->second;
 
@@ -237,6 +237,7 @@ namespace CGEngine {
 
         std::unique_ptr<Bone> skeleton =std::make_unique<Bone>(*ExtractBoneWeightForVertices(vertices, mesh, scene));
         auto texmas = initMaterialTextures(scene);
+        
         textures.insert(textures.end(), texmas.begin(), texmas.end());
 
         if (textures.size() == 0) {
@@ -247,15 +248,12 @@ namespace CGEngine {
 
         }
 
-      
-
         
+        Mesh* a = new Mesh(vertices, indices, textures, skeleton.release());
+        return std::move(*a);
         
-
-        return Mesh(vertices, indices, textures, std::move(skeleton));
-
     }
-
+    
     std::vector<std::shared_ptr<Texture2D>> ResourseManager::initMaterialTextures(const aiScene* scene)
     {
         std::vector<std::shared_ptr<Texture2D>> textures;
@@ -336,36 +334,48 @@ namespace CGEngine {
         }
         return -1;
     }
-    Bone* make_tree(std::vector<aiBone*>& bonemass, const aiNode* root, std::map<std::string, int> &bonemap)
+
+    Bone* make_tree(std::vector<aiBone*>& bonemass, const aiNode* root, std::map<std::string, int> &bonemap,  aiAnimation** animation, const unsigned int numAnim)
     {
-        Bone* rot;
-        int index = - 1;
-        bool flag = false;
        
-        for (int i = 0; i < root->mNumChildren; i++) {
-            index = find_node(bonemass, root->mChildren[i]);
-            if (index != -1) {
-                flag = true;
-                bonemap[bonemass[index]->mName.C_Str()] = b_id;
-                rot = (new Bone(b_id++, bonemass[index]->mName.C_Str(), ConvertMatrixToGLMFormat(bonemass[index]->mOffsetMatrix)));
-            }
-            else {
-                continue;
-            }
-            Bone* temp = make_tree(bonemass, root->mChildren[i],bonemap);
-            if (temp != nullptr)
-                rot->addChild(*temp);
-        }
-        if (index == -1 && !flag) {
+        int index = find_node(bonemass,root);
+        if (index == -1) {
             return nullptr;
+        }        
+        Bone* rot = nullptr;
+        bonemap[bonemass[index]->mName.C_Str()] = b_id;
+        //ConvertMatrixToGLMFormat(bonemass[index]->mOffsetMatrix);
+        rot = (new Bone(b_id++, bonemass[index]->mName.C_Str(), ConvertMatrixToGLMFormat(root->mTransformation), 
+            ConvertMatrixToGLMFormat(bonemass[index]->mOffsetMatrix), animation, numAnim));
+        for (int i = 0; i < root->mNumChildren; i++) {          
+            Bone* temp = make_tree(bonemass, root->mChildren[i], bonemap, animation, numAnim);
+            if (temp != nullptr)
+               rot->addChild(*temp);    
+           
         }
         
-
         return rot;
     }
 
+    aiNode* find_bone_root(const aiScene* scene, std::vector<aiBone*>& bonemass) {
 
-    
+        
+        for (int i = 0; i < scene->mRootNode->mNumChildren; i++) {
+            int index = find_node(bonemass,scene->mRootNode->mChildren[i]);
+            if (index != -1) {
+                return scene->mRootNode->mChildren[i];
+            }
+        }
+    }
+
+    void SetVertexBoneDataToDefault(Vertex& vertex)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            vertex.BoneID[i] = -1;
+            vertex.weights[i] = 0.0f;
+        }
+    }
 
     Bone* ResourseManager::ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene)
     {
@@ -377,18 +387,33 @@ namespace CGEngine {
         }
         std::map<std::string, int> bonemap;
        
-        Bone* skeleton = make_tree(bonemass, scene->mRootNode,bonemap);
+        aiAnimation** animation = scene->mAnimations;
+        const unsigned int numAnim = scene->mNumAnimations;
+
+        aiNode* root = find_bone_root(scene, bonemass);
         
-        skeleton->calcInverseBindTransform(glm::mat4(1.f));
+        scene->mRootNode->mTransformation;
+       
+        Bone* skeleton = make_tree(bonemass,root,bonemap, animation, numAnim);
+        
+        skeleton->applyRoot(ConvertMatrixToGLMFormat(scene->mRootNode->mTransformation));
+        
+        for (int i = 0; i < vertices.size(); i++) {
+            SetVertexBoneDataToDefault(vertices[i]);
+        }
 
         for (int i = 0; i < bonemass.size(); i++) {
             for (int j = 0; j < bonemass[i]->mNumWeights; j++) {
                 SetVertexBoneData(vertices[bonemass[i]->mWeights[j].mVertexId],bonemap[bonemass[i]->mName.C_Str()], bonemass[i]->mWeights[j].mWeight);
            }
         }
+
+        
         return skeleton;
     }
 
+
+    
     void ResourseManager::SetVertexBoneData(Vertex& vertex, int boneID, float weight)
     {
         for (int i = 0; i < 4; ++i)

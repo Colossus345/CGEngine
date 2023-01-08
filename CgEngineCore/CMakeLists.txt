@@ -8,7 +8,9 @@ set(ENGINE_PUBLIC_INCLUDES
 	includes/CgEngineCore/Events/Event.hpp
 	includes/CgEngineCore/Camera.hpp
 	includes/CgEngineCore/Keys.hpp
-	includes/CgEngineCore/Input.hpp)
+	includes/CgEngineCore/Input.hpp
+	
+	)
 	
 set(ENGINE_PRIVATE_INCLUDES 
 	src/CgEngineCore/Window.hpp
@@ -28,6 +30,7 @@ set(ENGINE_PRIVATE_INCLUDES
 	src/CgEngineCore/Modules/UIModule.hpp
 	src/CgEngineCore/Utils/ResourseManager.hpp
 	src/CgEngineCore/Input.cpp
+	src/CgEngineCore/test/test.hpp
 	)
 	
 set(ENGINE_PRIVATE_SOURCES
@@ -48,7 +51,8 @@ set(ENGINE_PRIVATE_SOURCES
 	src/CgEngineCore/Rendering/Animator.cpp
 	src/CgEngineCore/Modules/UIModule.cpp
 	src/CgEngineCore/Utils/ResourseManager.cpp
-	src/CgEngineCore/Camera.cpp)
+	src/CgEngineCore/Camera.cpp
+	)
 
 
 

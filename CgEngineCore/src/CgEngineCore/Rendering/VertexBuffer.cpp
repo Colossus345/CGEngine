@@ -39,7 +39,7 @@ namespace CGEngine {
 		case ShaderDataType::Int2:
 		case ShaderDataType::Int3:
 		case ShaderDataType::Int4:
-			return sizeof(GLfloat) * shader_data_type_to_components_count(type);
+			return sizeof(GLint) * shader_data_type_to_components_count(type);
 		}
 		LOG_ERROR("Unknown ShaderDataType");
 		return 0;

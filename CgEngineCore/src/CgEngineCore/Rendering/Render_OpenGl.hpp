@@ -7,6 +7,7 @@ namespace CGEngine {
 	class VertexArray;
 	class Model;
 	class Texture2D;
+	class ShaderProgram;
 
 	class Renderer_OpenGL
 	{
@@ -14,7 +15,7 @@ namespace CGEngine {
 		static bool init(GLFWwindow* pWindow);
 
 		static void draw(const VertexArray& vertexArray);
-		static void draw_model( Model& model);
+		static void draw_model( Model& model, ShaderProgram& shader, double& deltaTime);
 		static void draw_with_tex(const VertexArray& vertexArray, unsigned int texhan);
 		static void set_clear_color(const float r, const float g, const float b, const float a);
 		static void clear(bool depthEnable = false,bool stencilEnable = false);

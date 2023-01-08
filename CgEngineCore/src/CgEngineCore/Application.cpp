@@ -17,6 +17,8 @@
 #include "CgEngineCore/Utils/ResourseManager.hpp"
 
 
+
+
 #include"GLFW/glfw3.h"
 #include<iostream>
 #include"imgui.h"
@@ -27,6 +29,10 @@
 #include<iostream>
 #include<fstream>
 #include<filesystem>
+
+#include "CgEngineCore/test.hpp"
+
+
 
 namespace  CGEngine{
 
@@ -71,12 +77,13 @@ namespace  CGEngine{
     float translate[3] = { 0.f,0.f,0.f };
     float m_background_color[4] = { 0.4f, .4f, .71f, 1.0f };
 
-    float deltaTime = 0.0f;
-    float lastFrame = 0.0f;
+    double deltaTime = 0.0f;
+    double lastFrame = 0.0f;
 	Application::Application()
 	{
         
         LOG_INFO("Start app");
+       
         //stbi_set_flip_vertically_on_load(true);
 	}
 	
@@ -158,6 +165,10 @@ namespace  CGEngine{
         
        
 
+
+        test::Model ourModel("C:/Users/Syndafloden/Documents/CGEngine/CGEngine/res/hip/hip.dae");
+        test::Animation danceAnimation("C:/Users/Syndafloden/Documents/CGEngine/CGEngine/res/hip/hip.dae", &ourModel);
+        test::Animator animator(&danceAnimation);
         
         ///////////////////////////////////////////////////////////////////
 
@@ -181,35 +192,35 @@ namespace  CGEngine{
         glFrontFace(GL_CCW);
 
         
-       
-        ResourseManager::loadTexture("res/miss.png");
 
-        auto missing = ResourseManager::getTexture("res/miss.png");
-
-        auto p_shader_program = ResourseManager::loadShader("default_shader","res/shaders/MainVertextShader.vert", "res/shaders/MainFragmentShader.frag");
+        auto p_shader_program = ResourseManager::loadShader("default_shader","res/shaders/dop.vert", "res/shaders/dop.frag");
 
         auto p_light_shader = ResourseManager::loadShader("light_shader", "res/shaders/LightVertextShader.vert", "res/shaders/LightFragmentShader.frag");
 
         auto tex_shader = ResourseManager::loadShader("basic", "res/shaders/BasicTex.vert", "res/shaders/BasicTex.frag");
 
+        
+        
         while (!m_bCloseWindow) {
 
             //
-            float currentFrame = glfwGetTime();
+            double  currentFrame = glfwGetTime();
             deltaTime = currentFrame - lastFrame;
             lastFrame = currentFrame;
 
-            float fps = 1 / deltaTime;
+            double fps = 1 / deltaTime;
             std::string title = "FPS:" + std::to_string(fps);
             glfwSetWindowTitle(m_pWindow->m_pWindow, (title).c_str());
-
+            
+            
+           
 
             p_framebuffer->bind();
             glEnable(GL_DEPTH_TEST);
             Renderer_OpenGL::set_clear_color(m_background_color[0], m_background_color[1], m_background_color[2], m_background_color[3]);
             Renderer_OpenGL::clear(1, 1);
 
-
+            
             p_shader_program->bind();
 
             glm::mat4 scale_matrix(scale[0], 0, 0, 0,
@@ -226,34 +237,55 @@ namespace  CGEngine{
                 0, 0, 1, 0,
                 translate[0], translate[1], translate[2], 1);
 
-            glm::mat4 model_matrix = translate_matrix * rotate_matrix * scale_matrix;
+            //glm::mat4 model = translate_matrix * rotate_matrix * scale_matrix;
+            
+            glm::mat4 model = glm::mat4(1.0f);
             
             
-            model_matrix = glm::scale(model_matrix, glm::vec3(0.01f));
-            p_shader_program->setMatrix4("model_matrix", model_matrix);
+            model = glm::translate(model, glm::vec3(0,0,-4));
+            model = glm::scale(model, glm::vec3(0.04f));
+            model = glm::rotate(model, glm::radians(90.f), glm::vec3(1, 0, 0));
+            model = glm::rotate(model, glm::radians(90.f), glm::vec3(0, 1, 0));
+            model = glm::rotate(model, glm::radians(180.f), glm::vec3(0, 1, 0));
+
+            p_shader_program->setMatrix4("model", model);
+
+
+          
+            
 
             camera.set_projection_mode(perspective_camera ? Camera::ProjectionMode::Perspective : Camera::ProjectionMode::Orthographic);
-            Renderer_OpenGL::draw_model(*spider);
+            animator.UpdateAnimation(deltaTime);
+            
             p_shader_program->setMatrix4("view", camera.get_view_matrix());
             p_shader_program->setMatrix4("projection", camera.get_projection_matrix());
             
+            auto transforms = animator.GetFinalBoneMatrices();
+            for (int i = 0; i < 100; ++i)
+            {
+                std::string a = "finalBonesMatrices[" + std::to_string(i) + "]";
+                p_shader_program->setMatrix4(a.c_str(), transforms[i]);
+            }
             
-            p_shader_program->setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
-            p_shader_program->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-            p_shader_program->setVec3("lightPos", glm::vec3(1.2f));
-            p_shader_program->setVec3("viewPos", camera.get_camera_position());
+            Renderer_OpenGL::draw_model(*spider, *p_shader_program, deltaTime);          
             
+                 
             
-            
-            glm::mat4 model = glm::mat4(1.0f);
-            model_matrix = glm::translate(model_matrix, glm::vec3(0.0f, 0.0f, 0.0f));
-            model_matrix = glm::scale(model_matrix, glm::vec3(1.f));
-            model_matrix = glm::rotate(model_matrix, glm::radians(90.f),glm::vec3(1,1,1));
-            p_shader_program->setMatrix4("model_matrix", model_matrix);
+                
 
 
-            
+           
 
+
+            // render the loaded model
+            
+            model = glm::translate(model, glm::vec3(0.0f, -0.f, -4.4f)); // translate it down so it's at the center of the scene
+            model = glm::scale(model, glm::vec3(3.f));	// it's a bit too big for our scene, so scale it down
+            model = glm::rotate(model, glm::radians(90.f), glm::vec3(1, 0, 0));
+            model = glm::rotate(model, glm::radians(90.f), glm::vec3(0, 1, 0));
+            model = glm::rotate(model, glm::radians(180.f), glm::vec3(0, 1,0));
+            p_shader_program->setMatrix4("model", model);
+            ourModel.Draw();
             
 
            
@@ -264,7 +296,7 @@ namespace  CGEngine{
             p_light_shader->bind();
 
 
-            p_light_shader->setMatrix4("model_matrix", model_matrix);
+            p_light_shader->setMatrix4("model", model);
 
             camera.set_projection_mode(perspective_camera ? Camera::ProjectionMode::Perspective : Camera::ProjectionMode::Orthographic);
            
