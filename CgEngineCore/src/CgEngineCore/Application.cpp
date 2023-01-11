@@ -36,40 +36,12 @@
 
 namespace  CGEngine{
 
-    void test(std::shared_ptr<VertexArray> a) {
-
-    }
-
-    GLfloat positions_colors_coords[] = {
-        0.0f, -0.5f, -0.5f,   1.0f, 1.0f, 0.0f,   2.f, -1.f,
-        0.0f,  0.5f, -0.5f,   0.0f, 1.0f, 1.0f,  -1.f, -1.f,
-        0.0f, -0.5f,  0.5f,   1.0f, 0.0f, 1.0f,   2.f,  2.f,
-        0.0f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,  -1.f,  2.f
-    };
-
-    float quadVertices[] = { 
-        -1.0f,  1.0f,  0.0f, 1.0f,
-        -1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-
-        -1.0f,  1.0f,  0.0f, 1.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f,  1.0f, 1.0f
-    };
-
-    GLuint indicies[] = {
-        0,1,2,3,2,1
-    };
+   
    
     
 
 
 
-    std::unique_ptr<ShaderProgram> p_screen_shader;
-    std::unique_ptr<VertexBuffer> p_positions_colors_vbo;
-    std::unique_ptr<VertexArray> p_vao;
-    std::unique_ptr<IndexBuffer> p_index_buf;
-    std::unique_ptr<Texture2D> p_texture_quad;
     std::unique_ptr<FrameBuffer> p_framebuffer;
 
     float scale[3] = { 1.f,1.f,1.f };
@@ -166,9 +138,6 @@ namespace  CGEngine{
        
 
 
-        test::Model ourModel("C:/Users/Syndafloden/Documents/CGEngine/CGEngine/res/hip/hip.dae");
-        test::Animation danceAnimation("C:/Users/Syndafloden/Documents/CGEngine/CGEngine/res/hip/hip.dae", &ourModel);
-        test::Animator animator(&danceAnimation);
         
         ///////////////////////////////////////////////////////////////////
 
@@ -243,7 +212,7 @@ namespace  CGEngine{
             
             
             model = glm::translate(model, glm::vec3(0,0,-4));
-            model = glm::scale(model, glm::vec3(0.04f));
+            model = glm::scale(model, glm::vec3(.04f));
             model = glm::rotate(model, glm::radians(90.f), glm::vec3(1, 0, 0));
             model = glm::rotate(model, glm::radians(90.f), glm::vec3(0, 1, 0));
             model = glm::rotate(model, glm::radians(180.f), glm::vec3(0, 1, 0));
@@ -255,17 +224,13 @@ namespace  CGEngine{
             
 
             camera.set_projection_mode(perspective_camera ? Camera::ProjectionMode::Perspective : Camera::ProjectionMode::Orthographic);
-            animator.UpdateAnimation(deltaTime);
+            //animator.UpdateAnimation(deltaTime);
             
             p_shader_program->setMatrix4("view", camera.get_view_matrix());
             p_shader_program->setMatrix4("projection", camera.get_projection_matrix());
             
-            auto transforms = animator.GetFinalBoneMatrices();
-            for (int i = 0; i < 100; ++i)
-            {
-                std::string a = "finalBonesMatrices[" + std::to_string(i) + "]";
-                p_shader_program->setMatrix4(a.c_str(), transforms[i]);
-            }
+            
+            
             
             Renderer_OpenGL::draw_model(*spider, *p_shader_program, deltaTime);          
             
@@ -273,19 +238,23 @@ namespace  CGEngine{
             
                 
 
+            
 
            
-
+            /*/auto transforms = animator.GetFinalBoneMatrices();
+            for (int i = 0; i < 100; ++i)
+            {
+                std::string a = "finalBonesMatrices[" + std::to_string(i) + "]";
+                p_shader_program->setMatrix4(a.c_str(), transforms[i]);
+            }*/
 
             // render the loaded model
             
             model = glm::translate(model, glm::vec3(0.0f, -0.f, -4.4f)); // translate it down so it's at the center of the scene
-            model = glm::scale(model, glm::vec3(3.f));	// it's a bit too big for our scene, so scale it down
-            model = glm::rotate(model, glm::radians(90.f), glm::vec3(1, 0, 0));
-            model = glm::rotate(model, glm::radians(90.f), glm::vec3(0, 1, 0));
-            model = glm::rotate(model, glm::radians(180.f), glm::vec3(0, 1,0));
+            model = glm::scale(model, glm::vec3(60.f));	// it's a bit too big for our scene, so scale it down
+           
             p_shader_program->setMatrix4("model", model);
-            ourModel.Draw();
+            //ourModel.Draw();
             
 
            

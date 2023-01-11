@@ -6,6 +6,7 @@
 #include "VertexArray.hpp"
 #include "Bone.hpp"
 #include "Animator.hpp"
+#include "CgEngineCore/test/test.hpp"
 
 #include<memory>
 #define max_infl 4
@@ -24,7 +25,7 @@ namespace CGEngine {
 
         glm::vec2 TexCoords;
 
-        float BoneID[max_infl];
+        long  BoneID[max_infl];
 
         float weights[max_infl];
       
@@ -46,7 +47,13 @@ namespace CGEngine {
         std::unique_ptr<VertexBuffer> VBO;
         std::unique_ptr<IndexBuffer> EBO;
 
+        //unsigned int VAO;
+        //unsigned int  VBO;
+        //unsigned int EBO;
+
         Bone* m_Skeleton;
+
+       
 
         std::unique_ptr<Animator> anima;
         
@@ -68,7 +75,9 @@ namespace CGEngine {
 
         void add_skeleton(Bone* skeleton);
 
-        
+        void kringe();
+
+        void basa();
           
 
     private:

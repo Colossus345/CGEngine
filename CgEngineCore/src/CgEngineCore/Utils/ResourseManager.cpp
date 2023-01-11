@@ -46,7 +46,7 @@ namespace CGEngine {
 
        //parse_node(scene->mRootNode);
 
-        std::shared_ptr<Model>& p_model = m_Models.emplace(filename, std::make_unique<Model>(processNode(scene->mRootNode, scene))).first->second;
+        std::shared_ptr<Model>& p_model = m_Models.emplace(filename, std::make_shared<Model>(processNode(scene->mRootNode, scene))).first->second;
 
         return p_model;
     }
@@ -396,7 +396,7 @@ namespace CGEngine {
        
         Bone* skeleton = make_tree(bonemass,root,bonemap, animation, numAnim);
         
-        skeleton->applyRoot(ConvertMatrixToGLMFormat(scene->mRootNode->mTransformation));
+        //skeleton->applyRoot(ConvertMatrixToGLMFormat(scene->mRootNode->mTransformation));
         
         for (int i = 0; i < vertices.size(); i++) {
             SetVertexBoneDataToDefault(vertices[i]);

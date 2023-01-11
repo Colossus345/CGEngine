@@ -59,9 +59,9 @@ namespace CGEngine {
 		}
 		
 
-		mFinalBoneMatrix[id] = parentTransform * animatedTransform * localBindTransform * offset;
+		mFinalBoneMatrix[id] = parentTransform * animatedTransform * offset;
 		for (auto& it : children) {
-			it.updateAnimation(currentTime,anima, parentTransform * animatedTransform * localBindTransform,mFinalBoneMatrix);
+			it.updateAnimation(currentTime,anima, parentTransform * animatedTransform ,mFinalBoneMatrix);
 		}
 
 		//return mFinalBoneMatrix;

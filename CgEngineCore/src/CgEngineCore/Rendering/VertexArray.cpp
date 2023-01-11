@@ -38,15 +38,28 @@ namespace CGEngine{
 
 
 		for (const BufferElement& current_element : vertexbuffer.get_layout().get_elements()) {
-			glEnableVertexAttribArray(m_elements_count);
-			glVertexAttribPointer(
-				m_elements_count,
-				static_cast<GLint>(current_element.components_count),
-				current_element.component_type,
-				GL_FALSE,
-				static_cast<GLsizei>(vertexbuffer.get_layout().get_stride()),
-				reinterpret_cast<const void*>(current_element.offset));
-			++m_elements_count;
+			if (current_element.component_type == 0x1404) {
+				glEnableVertexAttribArray(m_elements_count);
+				glVertexAttribIPointer(
+					m_elements_count,
+					static_cast<GLint>(current_element.components_count),
+					current_element.component_type,
+					static_cast<GLsizei>(vertexbuffer.get_layout().get_stride()),
+					reinterpret_cast<const void*>(current_element.offset));
+				++m_elements_count;
+			}
+			else {
+				glEnableVertexAttribArray(m_elements_count);
+				glVertexAttribPointer(
+					m_elements_count,
+					static_cast<GLint>(current_element.components_count),
+					current_element.component_type,
+					GL_FALSE,
+					static_cast<GLsizei>(vertexbuffer.get_layout().get_stride()),
+					reinterpret_cast<const void*>(current_element.offset));
+				++m_elements_count;
+			}
+			
 		}
 
 		

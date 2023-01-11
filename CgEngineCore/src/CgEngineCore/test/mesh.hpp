@@ -79,7 +79,7 @@ public:
                 number = std::to_string(heightNr++); // transfer unsigned int to string
 
             // now set the sampler to the correct texture unit
-            glUniform1i(glGetUniformLocation(CGEngine::Renderer_OpenGL::current_shader, (name + number).c_str()), i);
+            //glUniform1i(glGetUniformLocation(CGEngine::Renderer_OpenGL::current_shader, (name + number).c_str()), i);
             // and finally bind the texture
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
         }
@@ -118,6 +118,8 @@ private:
 
         // set the vertex attribute pointers
         // vertex Positions
+
+        int a = sizeof(Vertex);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
         // vertex normals
